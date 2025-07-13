@@ -46,10 +46,9 @@ export default function LoginPage() {
         toast({
             variant: "destructive",
             title: "Login Failed",
-            description: "User data not found. Please sign up or contact support.",
+            description: "User data not found in database. Please sign up first.",
         });
-        // Log the user out if their firestore doc is missing
-        await auth.signOut();
+        await auth.signOut(); // Log out the user if their data is missing
         return;
       }
       
@@ -68,10 +67,28 @@ export default function LoginPage() {
           router.push("/client/dashboard");
       }
     } catch (error: any) {
+      console.error("Login error:", error);
+      let description = "An unexpected error occurred. Please try again.";
+      if (error.code) {
+          switch (error.code) {
+              case 'auth/user-not-found':
+              case 'auth/wrong-password':
+                  description = "Invalid email or password.";
+                  break;
+              case 'auth/too-many-requests':
+                  description = "Too many login attempts. Please try again later.";
+                  break;
+              case 'firestore/permission-denied':
+                  description = "There was a problem accessing your user data. Please contact support.";
+                  break;
+              default:
+                  description = error.message;
+          }
+      }
       toast({
         variant: "destructive",
         title: "Login Failed",
-        description: error.message,
+        description: description,
       });
     }
   };
