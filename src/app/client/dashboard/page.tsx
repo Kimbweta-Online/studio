@@ -74,7 +74,9 @@ export default function ClientDashboard() {
           {loadingQuotes ? (
             Array.from({ length: 4 }).map((_, index) => (
               <Card key={index} className="overflow-hidden flex flex-col">
-                <Skeleton className="h-48 w-full" />
+                 <div className="relative h-48 w-full bg-muted flex items-center justify-center">
+                    <Skeleton className="h-24 w-24 rounded-full" />
+                 </div>
                 <CardHeader>
                   <Skeleton className="h-6 w-3/4 mb-2" />
                   <Skeleton className="h-4 w-full" />
@@ -87,14 +89,8 @@ export default function ClientDashboard() {
           ) : quotes.length > 0 ? (
             quotes.map((quote) => (
               <Card key={quote.id} className="overflow-hidden flex flex-col">
-                <div className="relative h-48 w-full">
-                  <Image 
-                      src={quote.imageUrl} 
-                      alt={quote.title} 
-                      fill 
-                      style={{ objectFit: 'cover' }}
-                      data-ai-hint="motivation landscape"
-                  />
+                <div className="relative h-48 w-full bg-accent/50 flex items-center justify-center">
+                  <span className="text-7xl">{quote.emoji}</span>
                 </div>
                 <CardHeader>
                   <CardTitle className="font-headline">{quote.title}</CardTitle>

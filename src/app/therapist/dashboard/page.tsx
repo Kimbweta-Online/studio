@@ -2,7 +2,6 @@
 "use client";
 
 import { useState, useEffect, ChangeEvent } from "react";
-import Image from "next/image";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,14 +9,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Upload } from "lucide-react";
-import { db, storage } from "@/lib/firebase";
+import { Loader2, Upload, Smile, Star, Heart, Lightbulb } from "lucide-react";
+import { db } from "@/lib/firebase";
 import { collection, query, getDocs, where, addDoc, serverTimestamp } from "firebase/firestore";
-import { ref, uploadString, getDownloadURL } from "firebase/storage";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/auth-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { FirebaseError } from "firebase/app";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 
 type User = {
     id: string;
@@ -27,21 +30,40 @@ type User = {
     imageUrl?: string;
 }
 
+const quoteEmojis = [
+    { value: '😊', label: 'Happy', icon: Smile },
+    { value: '⭐', label: 'Inspiring', icon: Star },
+    { value: '❤️', label: 'Love', icon: Heart },
+    { value: '💡', label: 'Insightful', icon: Lightbulb },
+];
+
+const formSchema = z.object({
+    title: z.string().min(3, "Title must be at least 3 characters."),
+    description: z.string().min(10, "Description must be at least 10 characters."),
+    emoji: z.string({ required_error: "Please select an emoji for the quote." }),
+});
+
+type FormValues = z.infer<typeof formSchema>;
+
+
 export default function TherapistDashboard() {
     const { toast } = useToast();
     const { user } = useAuth();
     const [activeUsers, setActiveUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
-    const [isUploading, setIsUploading] = useState(false);
-    
-    const [imagePreview, setImagePreview] = useState<string | null>(null);
-    const [imageFile, setImageFile] = useState<File | null>(null);
+
+    const form = useForm<FormValues>({
+        resolver: zodResolver(formSchema),
+        defaultValues: {
+            title: "",
+            description: "",
+        },
+    });
 
     useEffect(() => {
         const fetchActiveUsers = async () => {
             setLoading(true);
             try {
-                // Simplified query to avoid composite index requirement
                 const usersQuery = query(
                     collection(db, "users"),
                     where("isOnline", "==", true)
@@ -49,7 +71,6 @@ export default function TherapistDashboard() {
                 const querySnapshot = await getDocs(usersQuery);
                 const users = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as User));
                 
-                // Sort users by name on the client-side
                 const sortedUsers = users.sort((a, b) => a.name.localeCompare(b.name));
                 
                 setActiveUsers(sortedUsers);
@@ -68,79 +89,37 @@ export default function TherapistDashboard() {
         fetchActiveUsers();
     }, [toast]);
 
-    const handleImageChange = (event: ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (file) {
-            setImageFile(file);
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setImagePreview(reader.result as string);
-            };
-            reader.readAsDataURL(file);
-        } else {
-            setImageFile(null);
-            setImagePreview(null);
-        }
-    };
 
-    const handleQuoteSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
+    const handleQuoteSubmit = async (values: FormValues) => {
         if (!user) {
             toast({ variant: "destructive", title: "Authentication Error", description: "You must be logged in to post." });
             return;
         }
 
-        const form = e.currentTarget;
-        const title = (form.elements.namedItem("title") as HTMLInputElement).value;
-        const description = (form.elements.namedItem("description") as HTMLTextAreaElement).value;
-
-        if (!title || !description) {
-            toast({ variant: "destructive", title: "Missing Fields", description: "Please provide a title and description." });
-            return;
-        }
-        
-        setIsUploading(true);
-
         try {
-            let imageUrl = "https://placehold.co/600x400.png"; // Default image
-
-            if (imageFile && imagePreview) {
-                const storageRef = ref(storage, `quotes/${Date.now()}_${imageFile.name}`);
-                await uploadString(storageRef, imagePreview, 'data_url');
-                imageUrl = await getDownloadURL(storageRef);
-            }
-            
             await addDoc(collection(db, "quotes"), {
-                title,
-                description,
-                imageUrl,
+                title: values.title,
+                description: values.description,
+                emoji: values.emoji,
                 authorId: user.uid,
                 authorName: user.displayName || "Anonymous Therapist",
                 createdAt: serverTimestamp(),
             });
 
             toast({
-                title: "Quote Uploaded",
+                title: "Quote Shared",
                 description: "Your motivational quote has been shared with the community.",
             });
             
-            setImageFile(null);
-            setImagePreview(null);
             form.reset();
 
         } catch (error: any) {
-            console.error("Error uploading quote: ", error);
-            let errorDescription = `There was an error sharing your quote: ${error.message}`;
-             if (error.code === 'storage/retry-limit-exceeded') {
-                errorDescription = "Could not upload image. The network connection timed out. Please check your internet connection and Firebase Storage setup.";
-            }
+            console.error("Error sharing quote: ", error);
             toast({
                 variant: "destructive",
                 title: "Upload Failed",
-                description: errorDescription,
+                description: `There was an error sharing your quote: ${error.message}`,
             });
-        } finally {
-            setIsUploading(false);
         }
     };
 
@@ -155,38 +134,75 @@ export default function TherapistDashboard() {
             <div className="lg:col-span-2">
                 <Card>
                     <CardHeader>
-                        <CardTitle className="font-headline">Upload a Motivational Quote</CardTitle>
+                        <CardTitle className="font-headline">Share a Motivational Quote</CardTitle>
                         <CardDescription>Share some inspiration with the community.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <form onSubmit={handleQuoteSubmit} className="space-y-4">
-                          <div className="space-y-2">
-                              <Label htmlFor="title">Title</Label>
-                              <Input id="title" name="title" placeholder="e.g., Embrace the Journey" required/>
-                          </div>
-                          <div className="space-y-2">
-                              <Label htmlFor="description">Description</Label>
-                              <Textarea id="description" name="description" placeholder="e.g., Every step is progress..." required/>
-                          </div>
-                          <div className="space-y-2">
-                              <Label htmlFor="image">Image</Label>
-                              <Input id="image" name="image" type="file" onChange={handleImageChange} accept="image/*" />
-                          </div>
-                          {imagePreview && (
-                            <div className="relative w-full h-48 mt-2 rounded-lg overflow-hidden border">
-                                <Image
-                                    src={imagePreview}
-                                    alt="Quote preview"
-                                    fill
-                                    style={{ objectFit: 'cover' }}
-                                />
-                            </div>
-                          )}
-                          <Button type="submit" disabled={isUploading}>
-                            {isUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" /> }
-                            Upload Quote
-                          </Button>
-                      </form>
+                      <Form {...form}>
+                        <form onSubmit={form.handleSubmit(handleQuoteSubmit)} className="space-y-4">
+                            <FormField
+                                control={form.control}
+                                name="title"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Title</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="e.g., Embrace the Journey" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="description"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Description</FormLabel>
+                                        <FormControl>
+                                            <Textarea placeholder="e.g., Every step is progress..." {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="emoji"
+                                render={({ field }) => (
+                                <FormItem className="space-y-3">
+                                    <FormLabel>Choose an Emoji</FormLabel>
+                                    <FormControl>
+                                    <RadioGroup
+                                        onValueChange={field.onChange}
+                                        defaultValue={field.value}
+                                        className="flex flex-wrap gap-2 pt-2"
+                                    >
+                                        {quoteEmojis.map((emoji) => (
+                                        <FormItem key={emoji.value} className="flex items-center space-x-2 space-y-0">
+                                            <FormControl>
+                                                <RadioGroupItem value={emoji.value} id={`quote-emoji-${emoji.label}`} className="sr-only peer" />
+                                            </FormControl>
+                                            <FormLabel
+                                                htmlFor={`quote-emoji-${emoji.label}`}
+                                                className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                                            >
+                                                <span className="text-3xl">{emoji.value}</span>
+                                            </FormLabel>
+                                        </FormItem>
+                                        ))}
+                                    </RadioGroup>
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                                )}
+                            />
+                            <Button type="submit" disabled={form.formState.isSubmitting}>
+                                {form.formState.isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" /> }
+                                Share Quote
+                            </Button>
+                        </form>
+                      </Form>
                     </CardContent>
                 </Card>
             </div>
