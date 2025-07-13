@@ -47,8 +47,8 @@ export default function LoginPage() {
         throw new Error("User data not found. Please contact support.");
       }
 
-      // Set user as online
-      await updateDoc(userDocRef, { isOnline: true });
+      // Set user as online - this will be handled by presence management or on layout load
+      // await updateDoc(userDocRef, { isOnline: true });
 
       const userData = userDoc.data();
       
