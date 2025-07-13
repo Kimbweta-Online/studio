@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, ChangeEvent } from "react";
 import Image from "next/image";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -10,10 +10,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Upload } from "lucide-react";
-import { db } from "@/lib/firebase";
-import { collection, query, getDocs, where, orderBy } from "firebase/firestore";
+import { Loader2, Upload } from "lucide-react";
+import { db, storage } from "@/lib/firebase";
+import { collection, query, getDocs, where, orderBy, addDoc, serverTimestamp } from "firebase/firestore";
+import { ref, uploadString, getDownloadURL } from "firebase/storage";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/context/auth-context";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type User = {
@@ -26,9 +28,13 @@ type User = {
 
 export default function TherapistDashboard() {
     const { toast } = useToast();
+    const { user } = useAuth();
     const [activeUsers, setActiveUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isUploading, setIsUploading] = useState(false);
+    
     const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const [imageFile, setImageFile] = useState<File | null>(null);
 
     useEffect(() => {
         const fetchActiveUsers = async () => {
@@ -57,29 +63,70 @@ export default function TherapistDashboard() {
         fetchActiveUsers();
     }, [toast]);
 
-    const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageChange = (event: ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
+            setImageFile(file);
             const reader = new FileReader();
             reader.onloadend = () => {
                 setImagePreview(reader.result as string);
             };
             reader.readAsDataURL(file);
         } else {
+            setImageFile(null);
             setImagePreview(null);
         }
     };
 
-    const handleQuoteSubmit = (e: React.FormEvent) => {
+    const handleQuoteSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        // Here you would implement the logic to save the quote to Firestore
-        // For now, we'll just show a toast notification.
-        toast({
-            title: "Quote Uploaded",
-            description: "Your motivational quote has been shared with the community.",
-        });
-        setImagePreview(null);
-        (e.target as HTMLFormElement).reset();
+        if (!user) {
+            toast({ variant: "destructive", title: "Authentication Error", description: "You must be logged in to post." });
+            return;
+        }
+
+        setIsUploading(true);
+        const form = e.currentTarget;
+        const title = (form.elements.namedItem("title") as HTMLInputElement).value;
+        const description = (form.elements.namedItem("description") as HTMLTextAreaElement).value;
+
+        try {
+            let imageUrl = "https://placehold.co/600x400.png"; // Default image
+
+            if (imageFile && imagePreview) {
+                const storageRef = ref(storage, `quotes/${Date.now()}_${imageFile.name}`);
+                await uploadString(storageRef, imagePreview, 'data_url');
+                imageUrl = await getDownloadURL(storageRef);
+            }
+            
+            await addDoc(collection(db, "quotes"), {
+                title,
+                description,
+                imageUrl,
+                authorId: user.uid,
+                authorName: user.displayName || "Anonymous Therapist",
+                createdAt: serverTimestamp(),
+            });
+
+            toast({
+                title: "Quote Uploaded",
+                description: "Your motivational quote has been shared with the community.",
+            });
+            
+            setImageFile(null);
+            setImagePreview(null);
+            form.reset();
+
+        } catch (error) {
+            console.error("Error uploading quote: ", error);
+            toast({
+                variant: "destructive",
+                title: "Upload Failed",
+                description: "There was an error sharing your quote.",
+            });
+        } finally {
+            setIsUploading(false);
+        }
     };
 
   return (
@@ -100,15 +147,15 @@ export default function TherapistDashboard() {
                       <form onSubmit={handleQuoteSubmit} className="space-y-4">
                           <div className="space-y-2">
                               <Label htmlFor="title">Title</Label>
-                              <Input id="title" placeholder="e.g., Embrace the Journey" required/>
+                              <Input id="title" name="title" placeholder="e.g., Embrace the Journey" required/>
                           </div>
                           <div className="space-y-2">
                               <Label htmlFor="description">Description</Label>
-                              <Textarea id="description" placeholder="e.g., Every step is progress..." required/>
+                              <Textarea id="description" name="description" placeholder="e.g., Every step is progress..." required/>
                           </div>
                           <div className="space-y-2">
                               <Label htmlFor="image">Image</Label>
-                              <Input id="image" type="file" onChange={handleImageChange} accept="image/*" />
+                              <Input id="image" name="image" type="file" onChange={handleImageChange} accept="image/*" />
                           </div>
                           {imagePreview && (
                             <div className="relative w-full h-48 mt-2 rounded-lg overflow-hidden border">
@@ -120,7 +167,10 @@ export default function TherapistDashboard() {
                                 />
                             </div>
                           )}
-                          <Button type="submit"><Upload className="mr-2 h-4 w-4" /> Upload Quote</Button>
+                          <Button type="submit" disabled={isUploading}>
+                            {isUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" /> }
+                            Upload Quote
+                          </Button>
                       </form>
                     </CardContent>
                 </Card>

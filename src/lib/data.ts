@@ -1,4 +1,7 @@
 
+
+import type { Timestamp } from "firebase/firestore";
+
 // This file can now be used for defining types and interfaces,
 // as the static data is no longer needed.
 
@@ -27,6 +30,7 @@ export type Quote = {
   imageUrl: string;
   authorId: string; // UID of the therapist who posted
   authorName: string;
+  createdAt: Timestamp;
 };
 
 export type Booking = {
@@ -40,7 +44,7 @@ export type Booking = {
 
 // The static arrays (therapists, quotes, bookings, clients) have been removed.
 // The application will now fetch this data from Firebase Firestore.
-export const quotes: Omit<Quote, 'id' | 'authorId' | 'authorName'>[] = [
+export const quotes: Omit<Quote, 'id' | 'authorId' | 'authorName' | 'createdAt'>[] = [
   { 
     title: 'The Power of Yet', 
     description: "Embracing challenges is a step towards growth. Instead of 'I can't do it,' try 'I can't do it... yet.'", 
