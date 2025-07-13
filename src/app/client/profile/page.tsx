@@ -3,9 +3,10 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/auth-context";
-import { db, auth } from "@/lib/firebase";
+import { db, auth, storage } from "@/lib/firebase";
 import { doc, getDoc, updateDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { updateProfile } from "firebase/auth";
+import { ref, uploadString, getDownloadURL } from "firebase/storage";
 import Image from "next/image";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Booking } from "@/lib/data";
+import { Loader2 } from "lucide-react";
 
 export default function ClientProfilePage() {
     const { toast } = useToast();
@@ -24,7 +26,9 @@ export default function ClientProfilePage() {
     const [userData, setUserData] = useState<any>(null);
     const [bookings, setBookings] = useState<Booking[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isSaving, setIsSaving] = useState(false);
 
+    const [photoFile, setPhotoFile] = useState<File | null>(null);
     const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
     useEffect(() => {
@@ -34,6 +38,7 @@ export default function ClientProfilePage() {
                 return;
             };
 
+            setLoading(true);
             try {
                 const userDocRef = doc(db, "users", user.uid);
                 const userDoc = await getDoc(userDocRef);
@@ -63,6 +68,7 @@ export default function ClientProfilePage() {
     const handlePhotoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
+            setPhotoFile(file);
             const reader = new FileReader();
             reader.onloadend = () => {
                 setPhotoPreview(reader.result as string);
@@ -74,26 +80,32 @@ export default function ClientProfilePage() {
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (!user || !userData) return;
+        setIsSaving(true);
 
         const form = e.currentTarget;
         const name = (form.elements.namedItem("name") as HTMLInputElement).value;
         const phone = (form.elements.namedItem("phone") as HTMLInputElement).value;
+        let imageUrl = userData.imageUrl;
 
         try {
-            // In a real app, you would handle image upload to a storage service (like Firebase Storage)
-            // and get back a URL. For now, we'll assume the preview is a local data URL.
-            // A real implementation would set `imageUrl` to the uploaded file's URL.
+            if (photoFile && photoPreview) {
+                 const storageRef = ref(storage, `avatars/${user.uid}/${photoFile.name}`);
+                 await uploadString(storageRef, photoPreview, 'data_url');
+                 imageUrl = await getDownloadURL(storageRef);
+            }
             
             const userDocRef = doc(db, "users", user.uid);
             await updateDoc(userDocRef, {
                 name: name,
                 phone: phone,
-                imageUrl: photoPreview, // This would be the URL from storage
+                imageUrl: imageUrl,
             });
 
             if (auth.currentUser) {
-              await updateProfile(auth.currentUser, { displayName: name, photoURL: photoPreview });
+              await updateProfile(auth.currentUser, { displayName: name, photoURL: imageUrl });
             }
+            
+            setUserData((prev: any) => ({ ...prev, name, phone, imageUrl }));
 
             toast({
                 title: "Profile Saved",
@@ -102,6 +114,8 @@ export default function ClientProfilePage() {
         } catch (error) {
             console.error("Error updating profile:", error);
             toast({ variant: "destructive", title: "Error", description: "Could not update your profile." });
+        } finally {
+            setIsSaving(false);
         }
     }
 
@@ -173,7 +187,10 @@ export default function ClientProfilePage() {
                                     <Input id="phone" name="phone" type="tel" defaultValue={userData.phone || ""} />
                                 </div>
                             </div>
-                            <Button type="submit" className="mt-4">Save Changes</Button>
+                            <Button type="submit" className="mt-4" disabled={isSaving}>
+                                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                Save Changes
+                            </Button>
                         </form>
                     </CardContent>
                 </Card>
