@@ -2,7 +2,6 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,6 +10,7 @@ import { ArrowRight, Bot } from 'lucide-react';
 import { db } from '@/lib/firebase';
 import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Player } from '@lottiefiles/react-lottie-player';
 
 export default function ClientDashboard() {
   const [quotes, setQuotes] = useState<Quote[]>([]);
@@ -44,14 +44,14 @@ export default function ClientDashboard() {
       <Card className="bg-primary/10 border-primary/20 shadow-lg">
         <CardContent className="p-6 flex flex-col md:flex-row items-center gap-6">
           <div className="flex-shrink-0">
-             <Image 
-                src="https://placehold.co/600x400.png" 
-                alt="Therapist illustration" 
-                width={150} 
-                height={150} 
-                className="rounded-full object-cover aspect-square"
-                data-ai-hint="therapy mindfulness"
-             />
+             <Player
+                src="https://lottie.host/4a53dd9e-8e84-4732-a25e-4613e51855a8/4FkF2e463M.json"
+                background="transparent"
+                speed={1}
+                style={{ width: '150px', height: '150px' }}
+                loop
+                autoplay
+              />
           </div>
           <div className="flex-1">
             <h2 className="text-2xl font-bold font-headline mb-2">Feeling Overwhelmed?</h2>
