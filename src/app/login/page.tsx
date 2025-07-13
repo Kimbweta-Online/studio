@@ -35,21 +35,22 @@ export default function LoginPage() {
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    // This correctly uses the form's internal state
-    if (form.formState.isSubmitting) return;
-
     try {
       const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
       const user = userCredential.user;
 
-      // Get user role from Firestore
       const userDocRef = doc(db, "users", user.uid);
       const userDoc = await getDoc(userDocRef);
 
       if (!userDoc.exists()) {
-        throw new Error("User data not found. Please contact support.");
+        toast({
+            variant: "destructive",
+            title: "Login Failed",
+            description: "User data not found. Please contact support.",
+        });
+        return;
       }
-
+      
       await updateDoc(userDocRef, { isOnline: true });
 
       const userData = userDoc.data();
