@@ -1,7 +1,8 @@
 "use client";
 
+import React, { useEffect } from 'react';
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,6 +20,9 @@ import {
 import { Logo } from "@/components/logo";
 import { CalendarCheck, LayoutGrid, LogOut, User } from "lucide-react";
 import { therapists } from "@/lib/data";
+import { useAuth } from '@/context/auth-context';
+import { auth } from '@/lib/firebase';
+import { signOut } from 'firebase/auth';
 
 export default function TherapistLayout({
   children,
@@ -26,8 +30,31 @@ export default function TherapistLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, loading } = useAuth();
   const isActive = (path: string) => pathname === path;
+  
+  // In a real app, this would come from your database
   const currentTherapist = therapists[0];
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login');
+    }
+  }, [user, loading, router]);
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    router.push('/login');
+  };
+
+  if (loading || !user) {
+    return (
+        <div className="flex items-center justify-center h-screen">
+             <p>Loading...</p>
+        </div>
+    )
+  }
 
   return (
     <SidebarProvider>
@@ -72,19 +99,17 @@ export default function TherapistLayout({
           <SidebarFooter>
              <div className="flex items-center gap-3">
                 <Avatar>
-                    <AvatarImage src={currentTherapist.imageUrl} alt={currentTherapist.name} />
-                    <AvatarFallback>{currentTherapist.name.charAt(0)}</AvatarFallback>
+                    <AvatarImage src={user.photoURL || currentTherapist.imageUrl} alt={user.displayName || currentTherapist.name} />
+                    <AvatarFallback>{user.email?.charAt(0).toUpperCase()}</AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col">
-                    <span className="font-semibold">{currentTherapist.name}</span>
-                    <span className="text-xs text-muted-foreground">Therapist</span>
+                    <span className="font-semibold">{user.displayName || currentTherapist.name}</span>
+                    <span className="text-xs text-muted-foreground">{user.email}</span>
                 </div>
             </div>
-            <Button asChild variant="ghost" className="justify-start gap-2">
-                <Link href="/">
-                    <LogOut/>
-                    <span>Logout</span>
-                </Link>
+            <Button onClick={handleLogout} variant="ghost" className="justify-start gap-2">
+                <LogOut/>
+                <span>Logout</span>
             </Button>
           </SidebarFooter>
         </Sidebar>
@@ -92,7 +117,7 @@ export default function TherapistLayout({
           <header className="flex items-center justify-between p-4 border-b bg-background sticky top-0 z-10 md:justify-end">
              <SidebarTrigger className="md:hidden" />
              <div className="flex items-center gap-4">
-                <p className="text-sm text-muted-foreground">Welcome back, {currentTherapist.name}!</p>
+                <p className="text-sm text-muted-foreground">Welcome back, {user.displayName || currentTherapist.name}!</p>
              </div>
           </header>
           <main className="p-4 sm:p-6 lg:p-8 flex-1">{children}</main>

@@ -1,7 +1,8 @@
 "use client";
 
+import React, { useEffect } from 'react';
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,6 +19,9 @@ import {
 } from "@/components/ui/sidebar";
 import { Logo } from "@/components/logo";
 import { Bot, CalendarDays, LayoutGrid, LogOut, User } from "lucide-react";
+import { useAuth } from '@/context/auth-context';
+import { auth } from '@/lib/firebase';
+import { signOut } from 'firebase/auth';
 
 export default function ClientLayout({
   children,
@@ -25,7 +29,28 @@ export default function ClientLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, loading } = useAuth();
   const isActive = (path: string) => pathname === path;
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login');
+    }
+  }, [user, loading, router]);
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    router.push('/login');
+  };
+
+  if (loading || !user) {
+    return (
+        <div className="flex items-center justify-center h-screen">
+             <p>Loading...</p>
+        </div>
+    )
+  }
 
   return (
     <SidebarProvider>
@@ -78,19 +103,17 @@ export default function ClientLayout({
           <SidebarFooter>
              <div className="flex items-center gap-3">
                 <Avatar>
-                    <AvatarImage src="https://placehold.co/100x100.png" alt="Alex Johnson" />
-                    <AvatarFallback>AJ</AvatarFallback>
+                    <AvatarImage src={user.photoURL || "https://placehold.co/100x100.png"} alt={user.displayName || "User"} />
+                    <AvatarFallback>{user.email?.charAt(0).toUpperCase()}</AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col">
-                    <span className="font-semibold">Alex Johnson</span>
-                    <span className="text-xs text-muted-foreground">Client</span>
+                    <span className="font-semibold">{user.displayName || "Client User"}</span>
+                    <span className="text-xs text-muted-foreground">{user.email}</span>
                 </div>
             </div>
-            <Button asChild variant="ghost" className="justify-start gap-2">
-                <Link href="/">
-                    <LogOut/>
-                    <span>Logout</span>
-                </Link>
+            <Button onClick={handleLogout} variant="ghost" className="justify-start gap-2">
+                <LogOut/>
+                <span>Logout</span>
             </Button>
           </SidebarFooter>
         </Sidebar>
@@ -98,7 +121,7 @@ export default function ClientLayout({
           <header className="flex items-center justify-between p-4 border-b bg-background sticky top-0 z-10 md:justify-end">
              <SidebarTrigger className="md:hidden" />
              <div className="flex items-center gap-4">
-                <p className="text-sm text-muted-foreground">Welcome back, Client!</p>
+                <p className="text-sm text-muted-foreground">Welcome back, {user.displayName || "Client"}!</p>
              </div>
           </header>
           <main className="p-4 sm:p-6 lg:p-8 flex-1">{children}</main>

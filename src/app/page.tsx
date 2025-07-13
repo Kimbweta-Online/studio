@@ -17,10 +17,10 @@ export default function Home() {
           </Link>
           <div className="flex items-center gap-2">
             <Button asChild variant="ghost">
-              <Link href="/client/dashboard">Client Login</Link>
+              <Link href="/login">Login</Link>
             </Button>
             <Button asChild>
-              <Link href="/therapist/dashboard">Therapist Login</Link>
+              <Link href="/signup">Sign Up</Link>
             </Button>
           </div>
         </div>
@@ -35,10 +35,10 @@ export default function Home() {
           </p>
           <div className="flex justify-center gap-4">
             <Button asChild size="lg">
-              <Link href="/client/dashboard">Get Started as a Client</Link>
+              <Link href="/signup">Get Started as a Client</Link>
             </Button>
             <Button asChild size="lg" variant="outline">
-              <Link href="/therapist/dashboard">Join as a Therapist</Link>
+              <Link href="/signup">Join as a Therapist</Link>
             </Button>
           </div>
         </section>
