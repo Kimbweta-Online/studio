@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Upload } from "lucide-react";
 import { db, storage } from "@/lib/firebase";
-import { collection, query, getDocs, where, orderBy, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, query, getDocs, where, addDoc, serverTimestamp } from "firebase/firestore";
 import { ref, uploadString, getDownloadURL } from "firebase/storage";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/auth-context";
@@ -121,12 +121,12 @@ export default function TherapistDashboard() {
             setImagePreview(null);
             form.reset();
 
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error uploading quote: ", error);
             toast({
                 variant: "destructive",
                 title: "Upload Failed",
-                description: "There was an error sharing your quote.",
+                description: `There was an error sharing your quote: ${error.message}`,
             });
         } finally {
             setIsUploading(false);
