@@ -56,11 +56,11 @@ export default function SignupPage() {
         email: values.email,
         role: values.role,
         isOnline: true, // Set online status on creation
+        avatar: '😀', // Default avatar
         // Add other fields therapists might need
         ...(values.role === "therapist" && {
             specialty: "Not Specified",
             bio: "",
-            imageUrl: ""
         })
       });
 

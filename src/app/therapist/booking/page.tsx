@@ -7,7 +7,7 @@ import { db } from "@/lib/firebase";
 import { collection, query, where, getDocs, doc, updateDoc, Timestamp } from "firebase/firestore";
 import type { Booking } from "@/lib/data";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -133,9 +133,8 @@ export default function TherapistBookingPage() {
                                 <TableRow key={booking.id}>
                                     <TableCell>
                                         <div className="flex items-center gap-3">
-                                            <Avatar>
-                                                <AvatarImage src={'https://placehold.co/100x100.png'} alt={booking.clientName} data-ai-hint="person avatar"/>
-                                                <AvatarFallback>{booking.clientName.charAt(0)}</AvatarFallback>
+                                            <Avatar className="h-10 w-10 text-2xl flex items-center justify-center bg-secondary">
+                                                <span>😀</span>
                                             </Avatar>
                                             <span className="font-medium">{booking.clientName}</span>
                                         </div>

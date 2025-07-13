@@ -3,12 +3,10 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/auth-context";
-import { db, auth, storage } from "@/lib/firebase";
+import { db, auth } from "@/lib/firebase";
 import { doc, getDoc, updateDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { updateProfile } from "firebase/auth";
-import { ref, uploadString, getDownloadURL } from "firebase/storage";
-import Image from "next/image";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -21,7 +19,9 @@ import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Booking } from "@/lib/data";
 import { Loader2 } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
+const avatarOptions = ['😀', '🧑‍⚕️', '🧠', '❤️', '🧘', '⭐', '💡', '🤝'];
 
 export default function TherapistProfilePage() {
     const { toast } = useToast();
@@ -30,9 +30,7 @@ export default function TherapistProfilePage() {
     const [bookings, setBookings] = useState<Booking[]>([]);
     const [loading, setLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
-
-    const [photoFile, setPhotoFile] = useState<File | null>(null);
-    const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+    const [selectedAvatar, setSelectedAvatar] = useState<string>('');
 
     useEffect(() => {
         const fetchUserData = async () => {
@@ -47,7 +45,7 @@ export default function TherapistProfilePage() {
                 if (userDoc.exists()) {
                     const data = userDoc.data();
                     setUserData(data);
-                    setPhotoPreview(data.imageUrl || user.photoURL);
+                    setSelectedAvatar(data.avatar || '🧑‍⚕️');
                 }
 
                 // Fetch bookings
@@ -67,17 +65,6 @@ export default function TherapistProfilePage() {
         fetchUserData();
     }, [user, toast]);
     
-    const handlePhotoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (file) {
-            setPhotoFile(file);
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setPhotoPreview(reader.result as string);
-            };
-            reader.readAsDataURL(file);
-        }
-    };
     
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -90,14 +77,6 @@ export default function TherapistProfilePage() {
             const specialty = (form.elements.namedItem("specialty") as HTMLInputElement).value;
             const bio = (form.elements.namedItem("bio") as HTMLTextAreaElement).value;
             const isAvailable = (form.elements.namedItem("availability-status") as HTMLInputElement).checked;
-            let imageUrl = userData.imageUrl;
-            
-            // Only upload a new photo if one has been selected
-            if (photoFile && photoPreview) {
-                 const storageRef = ref(storage, `avatars/${user.uid}/${photoFile.name}`);
-                 await uploadString(storageRef, photoPreview, 'data_url');
-                 imageUrl = await getDownloadURL(storageRef);
-            }
             
             const userDocRef = doc(db, "users", user.uid);
             await updateDoc(userDocRef, {
@@ -105,14 +84,14 @@ export default function TherapistProfilePage() {
                 specialty: specialty,
                 bio: bio,
                 isOnline: isAvailable,
-                imageUrl: imageUrl, // This will be the new URL or the existing one
+                avatar: selectedAvatar,
             });
 
              if (auth.currentUser) {
-              await updateProfile(auth.currentUser, { displayName: name, photoURL: imageUrl });
+              await updateProfile(auth.currentUser, { displayName: name });
             }
             
-            setUserData((prev: any) => ({ ...prev, name, specialty, bio, isOnline: isAvailable, imageUrl }));
+            setUserData((prev: any) => ({ ...prev, name, specialty, bio, isOnline: isAvailable, avatar: selectedAvatar }));
 
             toast({
                 title: "Profile Saved",
@@ -161,23 +140,24 @@ export default function TherapistProfilePage() {
                     </CardHeader>
                     <CardContent>
                       <form onSubmit={handleSubmit}>
-                        <div className="flex items-center gap-4">
-                             <Avatar className="h-20 w-20">
-                                {photoPreview ? (
-                                    <AvatarImage src={photoPreview} alt={userData.name} />
-                                ) : (
-                                    <AvatarImage src="https://placehold.co/100x100.png" alt={userData.name} />
-                                )}
-                                <AvatarFallback>{userData.name?.charAt(0).toUpperCase()}</AvatarFallback>
-                            </Avatar>
-                             <div className="space-y-2">
-                                <Label htmlFor="photo-upload">
-                                    <Button asChild variant="outline">
-                                        <span className="cursor-pointer">Change Photo</span>
-                                    </Button>
+                        <div className="space-y-2 mb-4">
+                            <Label>Choose Your Avatar</Label>
+                            <RadioGroup
+                                value={selectedAvatar}
+                                onValueChange={setSelectedAvatar}
+                                className="flex flex-wrap gap-2 pt-2"
+                            >
+                                {avatarOptions.map((avatar) => (
+                                <Label
+                                    key={avatar}
+                                    htmlFor={`avatar-${avatar}`}
+                                    className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                                >
+                                    <RadioGroupItem value={avatar} id={`avatar-${avatar}`} className="sr-only peer" />
+                                    <span className="text-3xl">{avatar}</span>
                                 </Label>
-                                <Input id="photo-upload" type="file" className="hidden" accept="image/*" onChange={handlePhotoChange} />
-                            </div>
+                                ))}
+                            </RadioGroup>
                         </div>
                         <Separator className="my-4" />
                         <div className="grid md:grid-cols-2 gap-4">

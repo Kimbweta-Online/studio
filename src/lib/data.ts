@@ -11,7 +11,7 @@ export type User = {
   email: string;
   role: 'client' | 'therapist';
   isOnline: boolean;
-  imageUrl?: string;
+  avatar?: string;
   phone?: string;
   // Therapist-specific fields
   specialty?: string;

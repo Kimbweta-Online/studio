@@ -2,12 +2,11 @@
 "use client";
 
 import { useState, useEffect, ChangeEvent } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Upload, Smile, Star, Heart, Lightbulb } from "lucide-react";
 import { db } from "@/lib/firebase";
@@ -27,7 +26,7 @@ type User = {
     name: string;
     role: 'client' | 'therapist';
     isOnline: boolean;
-    imageUrl?: string;
+    avatar?: string;
 }
 
 const quoteEmojis = [
@@ -69,17 +68,19 @@ export default function TherapistDashboard() {
                     where("isOnline", "==", true)
                 );
                 const querySnapshot = await getDocs(usersQuery);
-                const users = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as User));
+                const usersList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as User));
                 
-                const sortedUsers = users.sort((a, b) => a.name.localeCompare(b.name));
+                // Sort users by name client-side
+                const sortedUsers = usersList.sort((a, b) => a.name.localeCompare(b.name));
                 
                 setActiveUsers(sortedUsers);
             } catch (error) {
                 console.error("Error fetching active users: ", error);
+                const firebaseError = error as FirebaseError;
                 toast({
                     variant: "destructive",
-                    title: "Error",
-                    description: "Could not fetch active users."
+                    title: "Error Fetching Users",
+                    description: firebaseError.message || "Could not fetch active users."
                 });
             } finally {
                 setLoading(false);
@@ -95,6 +96,9 @@ export default function TherapistDashboard() {
             toast({ variant: "destructive", title: "Authentication Error", description: "You must be logged in to post." });
             return;
         }
+
+        const isUploading = form.formState.isSubmitting;
+        if (isUploading) return;
 
         try {
             await addDoc(collection(db, "quotes"), {
@@ -115,10 +119,10 @@ export default function TherapistDashboard() {
 
         } catch (error: any) {
             console.error("Error sharing quote: ", error);
-            toast({
+             toast({
                 variant: "destructive",
                 title: "Upload Failed",
-                description: `There was an error sharing your quote: ${error.message}`,
+                description: `There was an error sharing your quote. This can happen if your Firebase Storage is not configured correctly. Full error: ${error.message}`,
             });
         }
     };
@@ -227,9 +231,8 @@ export default function TherapistDashboard() {
                             activeUsers.length > 0 ? activeUsers.map(user => (
                                 <div key={user.id} className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
-                                        <Avatar className="h-10 w-10">
-                                            <AvatarImage src={user.imageUrl || 'https://placehold.co/100x100.png'} alt={user.name} />
-                                            <AvatarFallback>{user.name.slice(0,2).toUpperCase()}</AvatarFallback>
+                                        <Avatar className="h-10 w-10 text-2xl flex items-center justify-center bg-secondary">
+                                            <span>{user.avatar}</span>
                                         </Avatar>
                                         <span>{user.name}</span>
                                     </div>

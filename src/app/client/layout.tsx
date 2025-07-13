@@ -1,10 +1,10 @@
 
 "use client";
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   SidebarProvider,
@@ -23,7 +23,7 @@ import { Bot, CalendarDays, LayoutGrid, LogOut, User } from "lucide-react";
 import { useAuth } from '@/context/auth-context';
 import { auth, db } from '@/lib/firebase';
 import { signOut } from 'firebase/auth';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 
 export default function ClientLayout({
   children,
@@ -33,11 +33,21 @@ export default function ClientLayout({
   const pathname = usePathname();
   const router = useRouter();
   const { user, loading } = useAuth();
+  const [avatar, setAvatar] = useState('😀');
   const isActive = (path: string) => pathname === path;
 
   useEffect(() => {
     if (!loading && !user) {
       router.push('/login');
+    } else if (user) {
+        const fetchUserData = async () => {
+            const userDocRef = doc(db, "users", user.uid);
+            const userDoc = await getDoc(userDocRef);
+            if (userDoc.exists()) {
+                setAvatar(userDoc.data().avatar || '😀');
+            }
+        };
+        fetchUserData();
     }
   }, [user, loading, router]);
 
@@ -108,9 +118,8 @@ export default function ClientLayout({
           </SidebarContent>
           <SidebarFooter>
              <div className="flex items-center gap-3">
-                <Avatar>
-                    <AvatarImage src={user.photoURL || "https://placehold.co/100x100.png"} alt={user.displayName || "User"} />
-                    <AvatarFallback>{user.email?.charAt(0).toUpperCase()}</AvatarFallback>
+                <Avatar className="bg-secondary text-2xl flex items-center justify-center">
+                    {avatar}
                 </Avatar>
                 <div className="flex flex-col">
                     <span className="font-semibold">{user.displayName || "Client User"}</span>

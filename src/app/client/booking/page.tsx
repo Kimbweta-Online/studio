@@ -5,9 +5,7 @@ import { useState, useEffect } from "react";
 import { db, auth } from "@/lib/firebase";
 import { collection, query, where, getDocs, doc, setDoc, serverTimestamp, getDoc } from "firebase/firestore";
 import type { User as FirebaseUser } from "firebase/auth";
-import Image from "next/image";
-import Link from "next/link";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -142,9 +140,8 @@ export default function ClientBookingPage() {
             {therapists.map((therapist) => (
                 <Card key={therapist.id}>
                 <CardHeader className="flex-row items-center gap-4">
-                    <Avatar className="h-16 w-16">
-                    <AvatarImage src={therapist.imageUrl || 'https://placehold.co/100x100.png'} alt={therapist.name} data-ai-hint="portrait professional" />
-                    <AvatarFallback>{therapist.name.charAt(0)}</AvatarFallback>
+                    <Avatar className="h-16 w-16 text-4xl flex items-center justify-center bg-secondary">
+                        {therapist.avatar || '🧑‍⚕️'}
                     </Avatar>
                     <div>
                     <CardTitle className="font-headline">{therapist.name}</CardTitle>
@@ -197,9 +194,8 @@ export default function ClientBookingPage() {
             return (
               <Card key={booking.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 gap-4">
                 <div className="flex items-center gap-4">
-                    <Avatar>
-                        <AvatarImage src={therapist?.imageUrl || 'https://placehold.co/100x100.png'} alt={therapist?.name} />
-                        <AvatarFallback>{therapist?.name.charAt(0)}</AvatarFallback>
+                    <Avatar className="text-2xl flex items-center justify-center bg-secondary">
+                        {therapist?.avatar || '🧑‍⚕️'}
                     </Avatar>
                     <div>
                         <p className="font-semibold">Session with {therapist?.name}</p>
