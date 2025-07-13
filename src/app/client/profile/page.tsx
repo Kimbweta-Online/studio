@@ -11,8 +11,10 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { bookings } from "@/lib/data";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
 
 export default function ClientProfilePage() {
+    const { toast } = useToast();
     const totalBookings = bookings.filter(b => b.clientId === 'c1').length;
     const completedBookings = bookings.filter(b => b.clientId === 'c1' && b.status === 'Completed').length;
     const upcomingBookings = bookings.filter(b => b.clientId === 'c1' && (b.status === 'Pending' || b.status === 'Confirmed')).length;
@@ -29,6 +31,14 @@ export default function ClientProfilePage() {
             reader.readAsDataURL(file);
         }
     };
+    
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        toast({
+            title: "Profile Saved",
+            description: "Your personal details have been updated successfully.",
+        });
+    }
 
   return (
     <div className="space-y-8">
@@ -45,7 +55,7 @@ export default function ClientProfilePage() {
                         <CardDescription>Update your name and contact information.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <form onSubmit={(e) => { e.preventDefault(); alert('Profile saved!'); }}>
+                        <form onSubmit={handleSubmit}>
                             <div className="flex items-center gap-4">
                                 <Avatar className="h-20 w-20">
                                     {photoPreview ? (
@@ -55,10 +65,10 @@ export default function ClientProfilePage() {
                                     )}
                                     <AvatarFallback>AJ</AvatarFallback>
                                 </Avatar>
-                                <div>
-                                    <Label htmlFor="photo-upload" className="cursor-pointer">
-                                        <Button asChild>
-                                            <span>Change Photo</span>
+                                <div className="space-y-2">
+                                    <Label htmlFor="photo-upload">
+                                        <Button asChild variant="outline">
+                                            <span className="cursor-pointer">Change Photo</span>
                                         </Button>
                                     </Label>
                                     <Input id="photo-upload" type="file" className="hidden" accept="image/*" onChange={handlePhotoChange} />
