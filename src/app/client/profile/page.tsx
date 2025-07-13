@@ -1,7 +1,11 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/context/auth-context";
+import { db, auth } from "@/lib/firebase";
+import { doc, getDoc, updateDoc, collection, query, where, getDocs } from "firebase/firestore";
+import { updateProfile } from "firebase/auth";
 import Image from "next/image";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -9,18 +13,53 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { bookings } from "@/lib/data";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
+import type { Booking } from "@/lib/data";
 
 export default function ClientProfilePage() {
     const { toast } = useToast();
-    const totalBookings = bookings.filter(b => b.clientId === 'c1').length;
-    const completedBookings = bookings.filter(b => b.clientId === 'c1' && b.status === 'Completed').length;
-    const upcomingBookings = bookings.filter(b => b.clientId === 'c1' && (b.status === 'Pending' || b.status === 'Confirmed')).length;
+    const { user } = useAuth();
+    const [userData, setUserData] = useState<any>(null);
+    const [bookings, setBookings] = useState<Booking[]>([]);
+    const [loading, setLoading] = useState(true);
 
-    const [photoPreview, setPhotoPreview] = useState<string | null>("https://placehold.co/100x100.png");
+    const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
+    useEffect(() => {
+        const fetchUserData = async () => {
+            if (!user) {
+                setLoading(false);
+                return;
+            };
+
+            try {
+                const userDocRef = doc(db, "users", user.uid);
+                const userDoc = await getDoc(userDocRef);
+                if (userDoc.exists()) {
+                    const data = userDoc.data();
+                    setUserData(data);
+                    setPhotoPreview(data.imageUrl || user.photoURL);
+                }
+
+                // Fetch bookings
+                const bookingsQuery = query(collection(db, "bookings"), where("clientId", "==", user.uid));
+                const bookingsSnapshot = await getDocs(bookingsQuery);
+                const userBookings = bookingsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Booking));
+                setBookings(userBookings);
+
+            } catch (error) {
+                console.error("Error fetching user data:", error);
+                toast({ variant: "destructive", title: "Error", description: "Could not fetch user data." });
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchUserData();
+    }, [user, toast]);
+    
     const handlePhotoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
@@ -32,13 +71,58 @@ export default function ClientProfilePage() {
         }
     };
     
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        toast({
-            title: "Profile Saved",
-            description: "Your personal details have been updated successfully.",
-        });
+        if (!user || !userData) return;
+
+        const form = e.currentTarget;
+        const name = (form.elements.namedItem("name") as HTMLInputElement).value;
+        const phone = (form.elements.namedItem("phone") as HTMLInputElement).value;
+
+        try {
+            // In a real app, you would handle image upload to a storage service (like Firebase Storage)
+            // and get back a URL. For now, we'll assume the preview is a local data URL.
+            // A real implementation would set `imageUrl` to the uploaded file's URL.
+            
+            const userDocRef = doc(db, "users", user.uid);
+            await updateDoc(userDocRef, {
+                name: name,
+                phone: phone,
+                imageUrl: photoPreview, // This would be the URL from storage
+            });
+
+            if (auth.currentUser) {
+              await updateProfile(auth.currentUser, { displayName: name, photoURL: photoPreview });
+            }
+
+            toast({
+                title: "Profile Saved",
+                description: "Your personal details have been updated successfully.",
+            });
+        } catch (error) {
+            console.error("Error updating profile:", error);
+            toast({ variant: "destructive", title: "Error", description: "Could not update your profile." });
+        }
     }
+
+  if (loading || !userData) {
+    return (
+      <div className="space-y-8">
+        <div>
+          <Skeleton className="h-8 w-64 mb-2" />
+          <Skeleton className="h-4 w-96" />
+        </div>
+        <div className="grid lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2"><Skeleton className="h-96 w-full" /></div>
+          <div className="lg:col-span-1"><Skeleton className="h-64 w-full" /></div>
+        </div>
+      </div>
+    );
+  }
+
+  const totalBookings = bookings.length;
+  const completedBookings = bookings.filter(b => b.status === 'Completed').length;
+  const upcomingBookings = bookings.filter(b => b.status === 'Pending' || b.status === 'Confirmed').length;
 
   return (
     <div className="space-y-8">
@@ -59,11 +143,11 @@ export default function ClientProfilePage() {
                             <div className="flex items-center gap-4">
                                 <Avatar className="h-20 w-20">
                                     {photoPreview ? (
-                                        <AvatarImage src={photoPreview} alt="Alex Johnson" />
+                                        <AvatarImage src={photoPreview} alt={userData.name} />
                                     ) : (
-                                        <AvatarImage src="https://placehold.co/100x100.png" alt="Alex Johnson" />
+                                        <AvatarImage src="https://placehold.co/100x100.png" alt={userData.name} />
                                     )}
-                                    <AvatarFallback>AJ</AvatarFallback>
+                                    <AvatarFallback>{userData.name?.charAt(0).toUpperCase()}</AvatarFallback>
                                 </Avatar>
                                 <div className="space-y-2">
                                     <Label htmlFor="photo-upload">
@@ -78,15 +162,15 @@ export default function ClientProfilePage() {
                             <div className="grid md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="name">Full Name</Label>
-                                    <Input id="name" defaultValue="Alex Johnson" />
+                                    <Input id="name" name="name" defaultValue={userData.name} />
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="email">Email Address</Label>
-                                    <Input id="email" type="email" defaultValue="alex.j@example.com" />
+                                    <Input id="email" type="email" defaultValue={userData.email} disabled />
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="phone">Phone Number</Label>
-                                    <Input id="phone" type="tel" defaultValue="+1 (555) 123-4567" />
+                                    <Input id="phone" name="phone" type="tel" defaultValue={userData.phone || ""} />
                                 </div>
                             </div>
                             <Button type="submit" className="mt-4">Save Changes</Button>

@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useEffect } from 'react';
@@ -20,8 +21,9 @@ import {
 import { Logo } from "@/components/logo";
 import { Bot, CalendarDays, LayoutGrid, LogOut, User } from "lucide-react";
 import { useAuth } from '@/context/auth-context';
-import { auth } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
 import { signOut } from 'firebase/auth';
+import { doc, updateDoc } from 'firebase/firestore';
 
 export default function ClientLayout({
   children,
@@ -40,6 +42,10 @@ export default function ClientLayout({
   }, [user, loading, router]);
 
   const handleLogout = async () => {
+    if (user) {
+        const userDocRef = doc(db, "users", user.uid);
+        await updateDoc(userDocRef, { isOnline: false });
+    }
     await signOut(auth);
     router.push('/login');
   };

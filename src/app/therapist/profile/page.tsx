@@ -1,7 +1,11 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/context/auth-context";
+import { db, auth } from "@/lib/firebase";
+import { doc, getDoc, updateDoc, collection, query, where, getDocs } from "firebase/firestore";
+import { updateProfile } from "firebase/auth";
 import Image from "next/image";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -11,19 +15,54 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { bookings, therapists } from "@/lib/data";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
+import type { Booking } from "@/lib/data";
+
 
 export default function TherapistProfilePage() {
     const { toast } = useToast();
-    const currentTherapist = therapists[0];
-    const totalBookings = bookings.filter(b => b.therapistId === currentTherapist.id).length;
-    const completedBookings = bookings.filter(b => b.therapistId === currentTherapist.id && b.status === 'Completed').length;
-    const upcomingBookings = bookings.filter(b => b.therapistId === currentTherapist.id && (b.status === 'Pending' || b.status === 'Confirmed')).length;
+    const { user } = useAuth();
+    const [userData, setUserData] = useState<any>(null);
+    const [bookings, setBookings] = useState<Booking[]>([]);
+    const [loading, setLoading] = useState(true);
 
-    const [photoPreview, setPhotoPreview] = useState<string | null>(currentTherapist.imageUrl);
+    const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
+    useEffect(() => {
+        const fetchUserData = async () => {
+            if (!user) {
+                setLoading(false);
+                return;
+            };
+
+            try {
+                const userDocRef = doc(db, "users", user.uid);
+                const userDoc = await getDoc(userDocRef);
+                if (userDoc.exists()) {
+                    const data = userDoc.data();
+                    setUserData(data);
+                    setPhotoPreview(data.imageUrl || user.photoURL);
+                }
+
+                // Fetch bookings
+                const bookingsQuery = query(collection(db, "bookings"), where("therapistId", "==", user.uid));
+                const bookingsSnapshot = await getDocs(bookingsQuery);
+                const userBookings = bookingsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Booking));
+                setBookings(userBookings);
+
+            } catch (error) {
+                console.error("Error fetching user data:", error);
+                toast({ variant: "destructive", title: "Error", description: "Could not fetch user data." });
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchUserData();
+    }, [user, toast]);
+    
     const handlePhotoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
@@ -35,13 +74,58 @@ export default function TherapistProfilePage() {
         }
     };
     
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        toast({
-            title: "Profile Saved",
-            description: "Your professional details have been updated successfully.",
-        });
+        if (!user || !userData) return;
+
+        const form = e.currentTarget;
+        const name = (form.elements.namedItem("name") as HTMLInputElement).value;
+        const specialty = (form.elements.namedItem("specialty") as HTMLInputElement).value;
+        const bio = (form.elements.namedItem("bio") as HTMLTextAreaElement).value;
+        const isAvailable = (form.elements.namedItem("availability-status") as HTMLInputElement).checked;
+        
+        try {
+            const userDocRef = doc(db, "users", user.uid);
+            await updateDoc(userDocRef, {
+                name: name,
+                specialty: specialty,
+                bio: bio,
+                isOnline: isAvailable, // This should probably be a separate presence indicator
+                imageUrl: photoPreview, // This would be the URL from storage
+            });
+
+             if (auth.currentUser) {
+              await updateProfile(auth.currentUser, { displayName: name, photoURL: photoPreview });
+            }
+
+            toast({
+                title: "Profile Saved",
+                description: "Your professional details have been updated successfully.",
+            });
+        } catch (error) {
+             console.error("Error updating profile:", error);
+            toast({ variant: "destructive", title: "Error", description: "Could not update your profile." });
+        }
     };
+    
+    if (loading || !userData) {
+      return (
+        <div className="space-y-8">
+          <div>
+            <Skeleton className="h-8 w-64 mb-2" />
+            <Skeleton className="h-4 w-96" />
+          </div>
+          <div className="grid lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2"><Skeleton className="h-96 w-full" /></div>
+            <div className="lg:col-span-1"><Skeleton className="h-64 w-full" /></div>
+          </div>
+        </div>
+      );
+    }
+  
+    const totalBookings = bookings.length;
+    const completedBookings = bookings.filter(b => b.status === 'Completed').length;
+    const upcomingBookings = bookings.filter(b => b.status === 'Pending' || b.status === 'Confirmed').length;
 
   return (
     <div className="space-y-8">
@@ -62,11 +146,11 @@ export default function TherapistProfilePage() {
                         <div className="flex items-center gap-4">
                              <Avatar className="h-20 w-20">
                                 {photoPreview ? (
-                                    <AvatarImage src={photoPreview} alt={currentTherapist.name} />
+                                    <AvatarImage src={photoPreview} alt={userData.name} />
                                 ) : (
-                                    <AvatarImage src={currentTherapist.imageUrl} alt={currentTherapist.name} />
+                                    <AvatarImage src="https://placehold.co/100x100.png" alt={userData.name} />
                                 )}
-                                <AvatarFallback>{currentTherapist.name.charAt(0)}</AvatarFallback>
+                                <AvatarFallback>{userData.name?.charAt(0).toUpperCase()}</AvatarFallback>
                             </Avatar>
                              <div className="space-y-2">
                                 <Label htmlFor="photo-upload">
@@ -81,19 +165,19 @@ export default function TherapistProfilePage() {
                         <div className="grid md:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="name">Full Name</Label>
-                                <Input id="name" defaultValue={currentTherapist.name} />
+                                <Input id="name" name="name" defaultValue={userData.name} />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="specialty">Specialty</Label>
-                                <Input id="specialty" defaultValue={currentTherapist.specialty} />
+                                <Input id="specialty" name="specialty" defaultValue={userData.specialty} />
                             </div>
                         </div>
                          <div className="space-y-2">
                             <Label htmlFor="bio">Short Bio</Label>
-                            <Textarea id="bio" placeholder="Tell clients about your approach..." rows={4} />
+                            <Textarea id="bio" name="bio" placeholder="Tell clients about your approach..." rows={4} defaultValue={userData.bio} />
                         </div>
                         <div className="flex items-center space-x-2">
-                            <Switch id="availability-status" defaultChecked={currentTherapist.isOnline} />
+                            <Switch id="availability-status" name="availability-status" defaultChecked={userData.isOnline} />
                             <Label htmlFor="availability-status">Available for new bookings</Label>
                         </div>
                         <Button type="submit" className="mt-4">Save Changes</Button>
