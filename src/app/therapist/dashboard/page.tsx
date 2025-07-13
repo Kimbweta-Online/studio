@@ -17,6 +17,7 @@ import { ref, uploadString, getDownloadURL } from "firebase/storage";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/auth-context";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { FirebaseError } from "firebase/app";
 
 type User = {
     id: string;
@@ -89,10 +90,16 @@ export default function TherapistDashboard() {
             return;
         }
 
-        setIsUploading(true);
         const form = e.currentTarget;
         const title = (form.elements.namedItem("title") as HTMLInputElement).value;
         const description = (form.elements.namedItem("description") as HTMLTextAreaElement).value;
+
+        if (!title || !description) {
+            toast({ variant: "destructive", title: "Missing Fields", description: "Please provide a title and description." });
+            return;
+        }
+        
+        setIsUploading(true);
 
         try {
             let imageUrl = "https://placehold.co/600x400.png"; // Default image
@@ -123,10 +130,14 @@ export default function TherapistDashboard() {
 
         } catch (error: any) {
             console.error("Error uploading quote: ", error);
+            let description = `There was an error sharing your quote: ${error.message}`;
+             if (error.code === 'storage/retry-limit-exceeded') {
+                description = "Could not upload image. The network connection timed out. Please check your internet connection and Firebase Storage setup.";
+            }
             toast({
                 variant: "destructive",
                 title: "Upload Failed",
-                description: `There was an error sharing your quote: ${error.message}`,
+                description: description,
             });
         } finally {
             setIsUploading(false);
