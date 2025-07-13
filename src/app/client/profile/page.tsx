@@ -1,3 +1,8 @@
+
+"use client";
+
+import { useState } from "react";
+import Image from "next/image";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +16,19 @@ export default function ClientProfilePage() {
     const totalBookings = bookings.filter(b => b.clientId === 'c1').length;
     const completedBookings = bookings.filter(b => b.clientId === 'c1' && b.status === 'Completed').length;
     const upcomingBookings = bookings.filter(b => b.clientId === 'c1' && (b.status === 'Pending' || b.status === 'Confirmed')).length;
+
+    const [photoPreview, setPhotoPreview] = useState<string | null>("https://placehold.co/100x100.png");
+
+    const handlePhotoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPhotoPreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
 
   return (
     <div className="space-y-8">
@@ -27,15 +45,26 @@ export default function ClientProfilePage() {
                         <CardDescription>Update your name and contact information.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <div className="flex items-center gap-4">
-                             <Avatar className="h-20 w-20">
-                                <AvatarImage src="https://placehold.co/100x100.png" alt="Alex Johnson" />
-                                <AvatarFallback>AJ</AvatarFallback>
-                            </Avatar>
-                            <Button variant="outline" onClick={() => alert('Change photo clicked!')}>Change Photo</Button>
-                        </div>
-                        <Separator />
                         <form onSubmit={(e) => { e.preventDefault(); alert('Profile saved!'); }}>
+                            <div className="flex items-center gap-4">
+                                <Avatar className="h-20 w-20">
+                                    {photoPreview ? (
+                                        <AvatarImage src={photoPreview} alt="Alex Johnson" />
+                                    ) : (
+                                        <AvatarImage src="https://placehold.co/100x100.png" alt="Alex Johnson" />
+                                    )}
+                                    <AvatarFallback>AJ</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                    <Label htmlFor="photo-upload" className="cursor-pointer">
+                                        <Button asChild>
+                                            <span>Change Photo</span>
+                                        </Button>
+                                    </Label>
+                                    <Input id="photo-upload" type="file" className="hidden" accept="image/*" onChange={handlePhotoChange} />
+                                </div>
+                            </div>
+                            <Separator className="my-4" />
                             <div className="grid md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="name">Full Name</Label>

@@ -1,5 +1,8 @@
+
 "use client";
 
+import { useState } from "react";
+import Image from "next/image";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,6 +19,19 @@ export default function TherapistProfilePage() {
     const totalBookings = bookings.filter(b => b.therapistId === currentTherapist.id).length;
     const completedBookings = bookings.filter(b => b.therapistId === currentTherapist.id && b.status === 'Completed').length;
     const upcomingBookings = bookings.filter(b => b.therapistId === currentTherapist.id && (b.status === 'Pending' || b.status === 'Confirmed')).length;
+
+    const [photoPreview, setPhotoPreview] = useState<string | null>(currentTherapist.imageUrl);
+
+    const handlePhotoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPhotoPreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
 
   return (
     <div className="space-y-8">
@@ -35,12 +51,23 @@ export default function TherapistProfilePage() {
                       <form onSubmit={(e) => { e.preventDefault(); alert('Profile saved!'); }} className="space-y-4">
                         <div className="flex items-center gap-4">
                              <Avatar className="h-20 w-20">
-                                <AvatarImage src={currentTherapist.imageUrl} alt={currentTherapist.name} />
+                                {photoPreview ? (
+                                    <AvatarImage src={photoPreview} alt={currentTherapist.name} />
+                                ) : (
+                                    <AvatarImage src={currentTherapist.imageUrl} alt={currentTherapist.name} />
+                                )}
                                 <AvatarFallback>{currentTherapist.name.charAt(0)}</AvatarFallback>
                             </Avatar>
-                            <Button variant="outline" type="button" onClick={() => alert('Change photo clicked!')}>Change Photo</Button>
+                             <div>
+                                <Label htmlFor="photo-upload" className="cursor-pointer">
+                                    <Button asChild>
+                                        <span>Change Photo</span>
+                                    </Button>
+                                </Label>
+                                <Input id="photo-upload" type="file" className="hidden" accept="image/*" onChange={handlePhotoChange} />
+                            </div>
                         </div>
-                        <Separator />
+                        <Separator className="my-4" />
                         <div className="grid md:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="name">Full Name</Label>
@@ -59,7 +86,7 @@ export default function TherapistProfilePage() {
                             <Switch id="availability-status" defaultChecked={currentTherapist.isOnline} />
                             <Label htmlFor="availability-status">Available for new bookings</Label>
                         </div>
-                        <Button type="submit">Save Changes</Button>
+                        <Button type="submit" className="mt-4">Save Changes</Button>
                       </form>
                     </CardContent>
                 </Card>
