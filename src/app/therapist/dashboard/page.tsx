@@ -40,14 +40,18 @@ export default function TherapistDashboard() {
         const fetchActiveUsers = async () => {
             setLoading(true);
             try {
+                // Simplified query to avoid composite index requirement
                 const usersQuery = query(
                     collection(db, "users"),
-                    where("isOnline", "==", true),
-                    orderBy("name")
+                    where("isOnline", "==", true)
                 );
                 const querySnapshot = await getDocs(usersQuery);
                 const users = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as User));
-                setActiveUsers(users);
+                
+                // Sort users by name on the client-side
+                const sortedUsers = users.sort((a, b) => a.name.localeCompare(b.name));
+                
+                setActiveUsers(sortedUsers);
             } catch (error) {
                 console.error("Error fetching active users: ", error);
                 toast({
