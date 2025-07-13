@@ -9,7 +9,7 @@ const firebaseConfig = {
   authDomain: "dr-mindset.firebaseapp.com",
   databaseURL: "https://dr-mindset-default-rtdb.firebaseio.com",
   projectId: "dr-mindset",
-  storageBucket: "dr-mindset.appspot.com",
+  storageBucket: "dr-mindset.firebasestorage.app",
   messagingSenderId: "16123595851",
   appId: "1:16123595851:web:042ef90c28f364233911ce",
   measurementId: "G-GYEPM3NEDR"
