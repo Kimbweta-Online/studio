@@ -88,6 +88,7 @@ export default function ClientProfilePage() {
             const phone = (form.elements.namedItem("phone") as HTMLInputElement).value;
             let imageUrl = userData.imageUrl;
 
+            // Only upload a new photo if one has been selected
             if (photoFile && photoPreview) {
                  const storageRef = ref(storage, `avatars/${user.uid}/${photoFile.name}`);
                  await uploadString(storageRef, photoPreview, 'data_url');
@@ -98,7 +99,7 @@ export default function ClientProfilePage() {
             await updateDoc(userDocRef, {
                 name: name,
                 phone: phone,
-                imageUrl: imageUrl,
+                imageUrl: imageUrl, // This will be the new URL or the existing one
             });
 
             if (auth.currentUser) {

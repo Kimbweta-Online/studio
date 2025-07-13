@@ -92,6 +92,7 @@ export default function TherapistProfilePage() {
             const isAvailable = (form.elements.namedItem("availability-status") as HTMLInputElement).checked;
             let imageUrl = userData.imageUrl;
             
+            // Only upload a new photo if one has been selected
             if (photoFile && photoPreview) {
                  const storageRef = ref(storage, `avatars/${user.uid}/${photoFile.name}`);
                  await uploadString(storageRef, photoPreview, 'data_url');
@@ -104,7 +105,7 @@ export default function TherapistProfilePage() {
                 specialty: specialty,
                 bio: bio,
                 isOnline: isAvailable,
-                imageUrl: imageUrl,
+                imageUrl: imageUrl, // This will be the new URL or the existing one
             });
 
              if (auth.currentUser) {
