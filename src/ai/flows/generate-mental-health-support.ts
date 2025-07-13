@@ -1,8 +1,9 @@
+
 'use server';
 /**
  * @fileOverview AI-powered mental health support flow.
  *
- * - generateMentalHealthSupport - A function that handles the generation of mental health support based on a question and an image.
+ * - generateMentalHealthSupport - A function that handles the generation of mental health support based on a question and an expressed emotion.
  * - GenerateMentalHealthSupportInput - The input type for the generateMentalHealthSupport function.
  * - GenerateMentalHealthSupportOutput - The return type for the generateMentalHealthSupport function.
  */
@@ -12,11 +13,7 @@ import {z} from 'genkit';
 
 const GenerateMentalHealthSupportInputSchema = z.object({
   question: z.string().describe('The mental health-related question.'),
-  photoDataUri: z
-    .string()
-    .describe(
-      "A photo related to the question, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'"
-    ),
+  emotion: z.string().describe('The emotion the user is currently feeling.'),
 });
 export type GenerateMentalHealthSupportInput = z.infer<typeof GenerateMentalHealthSupportInputSchema>;
 
@@ -33,16 +30,12 @@ const prompt = ai.definePrompt({
   name: 'generateMentalHealthSupportPrompt',
   input: {schema: GenerateMentalHealthSupportInputSchema},
   output: {schema: GenerateMentalHealthSupportOutputSchema},
-  prompt: `You are an AI mental health support assistant. A client has asked the following question related to their mental health.
+  prompt: `You are an AI mental health support assistant. A client is feeling "{{emotion}}" and has asked the following question related to their mental health.
 Your response must be in Markdown format.
 
 Question: {{{question}}}
 
-They have also provided the following image:
-
-Image: {{media url=photoDataUri}}
-
-Provide a supportive and helpful answer to their question. Focus on providing practical advice and guidance. Do not provide a diagnosis.
+Provide a supportive and helpful answer to their question, taking into account the emotion they have expressed. Focus on providing practical advice and guidance. Do not provide a diagnosis.
 If the user seems to be in immediate danger or distress, provide contact information for a crisis hotline like the National Suicide Prevention Lifeline at 988.`,
 });
 

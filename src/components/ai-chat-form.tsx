@@ -1,7 +1,7 @@
+
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -9,33 +9,32 @@ import { generateMentalHealthSupport } from "@/ai/flows/generate-mental-health-s
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { ImageIcon, Bot, Loader2, Send } from "lucide-react";
+import { Bot, Loader2, Send, Smile, Frown, Meh, Angry, Laugh } from "lucide-react";
 import { Skeleton } from "./ui/skeleton";
+import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const emotions = [
+    { value: 'Happy', emoji: '😊', icon: Smile },
+    { value: 'Sad', emoji: '😢', icon: Frown },
+    { value: 'Neutral', emoji: '😐', icon: Meh },
+    { value: 'Angry', emoji: '😠', icon: Angry },
+    { value: 'Joyful', emoji: '😂', icon: Laugh },
+];
 
 const formSchema = z.object({
   question: z.string().min(10, {
     message: "Please ask a more detailed question (at least 10 characters).",
   }),
-  photo: z
-    .custom<FileList>()
-    .refine((files) => files?.length === 1, "An image is required.")
-    .refine((files) => files?.[0]?.size <= MAX_FILE_SIZE, `Max image size is 5MB.`)
-    .refine(
-      (files) => ACCEPTED_IMAGE_TYPES.includes(files?.[0]?.type),
-      "Only .jpg, .png and .webp formats are supported."
-    ),
+  emotion: z.string({
+    required_error: "Please select how you're feeling.",
+  }),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
 export function AiChatForm() {
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [aiResponse, setAiResponse] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -44,40 +43,17 @@ export function AiChatForm() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       question: "",
-      photo: undefined,
     },
   });
-
-  const handlePhotoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPhotoPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    } else {
-      setPhotoPreview(null);
-    }
-  };
-
-  const toBase64 = (file: File): Promise<string> =>
-    new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = reject;
-    });
 
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
     setIsLoading(true);
     setAiResponse(null);
 
     try {
-      const photoDataUri = await toBase64(data.photo[0]);
       const result = await generateMentalHealthSupport({
         question: data.question,
-        photoDataUri,
+        emotion: data.emotion,
       });
       setAiResponse(result.answer);
     } catch (error) {
@@ -97,11 +73,44 @@ export function AiChatForm() {
       <Card>
         <CardHeader>
           <CardTitle className="font-headline text-2xl">Talk to Your AI Assistant</CardTitle>
-          <CardDescription>Share an image and your thoughts to get supportive feedback.</CardDescription>
+          <CardDescription>Share your thoughts and select an emotion to get supportive feedback.</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <FormField
+                control={form.control}
+                name="emotion"
+                render={({ field }) => (
+                  <FormItem className="space-y-3">
+                    <FormLabel>How are you feeling right now?</FormLabel>
+                    <FormControl>
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        className="flex flex-wrap gap-2 pt-2"
+                      >
+                        {emotions.map((emotion) => (
+                           <FormItem key={emotion.value} className="flex items-center space-x-2 space-y-0">
+                               <FormControl>
+                                   <RadioGroupItem value={emotion.value} id={`emotion-${emotion.value}`} className="sr-only" />
+                               </FormControl>
+                               <FormLabel
+                                htmlFor={`emotion-${emotion.value}`}
+                                className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                               >
+                                  <emotion.icon className="h-6 w-6 mb-1" />
+                                  <span className="text-2xl">{emotion.emoji}</span>
+                               </FormLabel>
+                           </FormItem>
+                        ))}
+                      </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               <FormField
                 control={form.control}
                 name="question"
@@ -119,37 +128,6 @@ export function AiChatForm() {
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="photo"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Upload a Related Image</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="file"
-                        accept={ACCEPTED_IMAGE_TYPES.join(",")}
-                        onChange={(e) => {
-                          field.onChange(e.target.files);
-                          handlePhotoChange(e);
-                        }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {photoPreview && (
-                <div className="relative w-full h-64 mt-4 rounded-lg overflow-hidden border">
-                   <Image
-                      src={photoPreview}
-                      alt="Uploaded preview"
-                      fill
-                      style={{ objectFit: 'cover' }}
-                    />
-                </div>
-              )}
 
               <Button type="submit" disabled={isLoading} className="w-full">
                 {isLoading ? (
@@ -196,8 +174,8 @@ export function AiChatForm() {
             )}
             {!isLoading && !aiResponse && (
                 <div className="text-center text-muted-foreground py-10">
-                    <ImageIcon className="mx-auto h-12 w-12 mb-4" />
-                    <p>Your AI-generated response will appear here once you submit your question and image.</p>
+                    <Smile className="mx-auto h-12 w-12 mb-4" />
+                    <p>Your AI-generated response will appear here once you submit your question and emotion.</p>
                 </div>
             )}
         </CardContent>
