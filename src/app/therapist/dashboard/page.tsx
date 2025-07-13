@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, ChangeEvent } from "react";
+import { useState, useEffect } from "react";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -56,6 +56,7 @@ export default function TherapistDashboard() {
         defaultValues: {
             title: "",
             description: "",
+            emoji: "",
         },
     });
 
@@ -65,7 +66,8 @@ export default function TherapistDashboard() {
             try {
                 const usersQuery = query(
                     collection(db, "users"),
-                    where("isOnline", "==", true)
+                    where("isOnline", "==", true),
+                    where("role", "==", "client")
                 );
                 const querySnapshot = await getDocs(usersQuery);
                 const usersList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as User));
@@ -87,8 +89,10 @@ export default function TherapistDashboard() {
             }
         };
 
-        fetchActiveUsers();
-    }, [toast]);
+        if (user) {
+            fetchActiveUsers();
+        }
+    }, [user, toast]);
 
 
     const handleQuoteSubmit = async (values: FormValues) => {
@@ -96,9 +100,6 @@ export default function TherapistDashboard() {
             toast({ variant: "destructive", title: "Authentication Error", description: "You must be logged in to post." });
             return;
         }
-
-        const isUploading = form.formState.isSubmitting;
-        if (isUploading) return;
 
         try {
             await addDoc(collection(db, "quotes"), {
@@ -122,7 +123,7 @@ export default function TherapistDashboard() {
              toast({
                 variant: "destructive",
                 title: "Upload Failed",
-                description: `There was an error sharing your quote. This can happen if your Firebase Storage is not configured correctly. Full error: ${error.message}`,
+                description: `There was an error sharing your quote. Error: ${error.message}`,
             });
         }
     };
@@ -213,8 +214,8 @@ export default function TherapistDashboard() {
              <div className="lg:col-span-1">
                 <Card>
                     <CardHeader>
-                        <CardTitle className="font-headline">Active Users</CardTitle>
-                        <CardDescription>Users currently online.</CardDescription>
+                        <CardTitle className="font-headline">Active Clients</CardTitle>
+                        <CardDescription>Clients currently online.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         {loading ? (
@@ -236,9 +237,9 @@ export default function TherapistDashboard() {
                                         </Avatar>
                                         <span>{user.name}</span>
                                     </div>
-                                    {user.role === 'therapist' ? <Badge variant="outline">Therapist</Badge> : <Badge variant="secondary">Client</Badge>}
+                                    <Badge variant="secondary">Client</Badge>
                                 </div>
-                            )) : <p className="text-sm text-muted-foreground text-center py-4">No users are currently online.</p>
+                            )) : <p className="text-sm text-muted-foreground text-center py-4">No clients are currently online.</p>
                         )}
                     </CardContent>
                 </Card>
