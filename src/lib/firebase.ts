@@ -5,13 +5,16 @@ import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
-  apiKey: "REPLACE_WITH_YOUR_FIREBASE_API_KEY",
-  authDomain: "REPLACE_WITH_YOUR_FIREBASE_AUTH_DOMAIN",
-  projectId: "REPLACE_WITH_YOUR_FIREBASE_PROJECT_ID",
-  storageBucket: "REPLACE_WITH_YOUR_FIREBASE_STORAGE_BUCKET",
-  messagingSenderId: "REPLACE_WITH_YOUR_FIREBASE_MESSAGING_SENDER_ID",
-  appId: "REPLACE_WITH_YOUR_FIREBASE_APP_ID"
+  apiKey: "AIzaSyBp3ukSANB6kAaXpnK5LgHxMhtyYSpVwvw",
+  authDomain: "dr-mindset.firebaseapp.com",
+  databaseURL: "https://dr-mindset-default-rtdb.firebaseio.com",
+  projectId: "dr-mindset",
+  storageBucket: "dr-mindset.appspot.com",
+  messagingSenderId: "16123595851",
+  appId: "1:16123595851:web:042ef90c28f364233911ce",
+  measurementId: "G-GYEPM3NEDR"
 };
+
 
 // Initialize Firebase
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
