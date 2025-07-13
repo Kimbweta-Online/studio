@@ -112,9 +112,9 @@ export default function ClientProfilePage() {
                 title: "Profile Saved",
                 description: "Your personal details have been updated successfully.",
             });
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error updating profile:", error);
-            toast({ variant: "destructive", title: "Error", description: "Could not update your profile." });
+            toast({ variant: "destructive", title: "Update Failed", description: `Could not update your profile: ${error.message}` });
         } finally {
             setIsSaving(false);
         }
@@ -153,7 +153,7 @@ export default function ClientProfilePage() {
                         <CardTitle className="font-headline">Personal Details</CardTitle>
                         <CardDescription>Update your name and contact information.</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
+                    <CardContent>
                         <form onSubmit={handleSubmit}>
                             <div className="flex items-center gap-4">
                                 <Avatar className="h-20 w-20">
@@ -188,7 +188,7 @@ export default function ClientProfilePage() {
                                     <Input id="phone" name="phone" type="tel" defaultValue={userData.phone || ""} />
                                 </div>
                             </div>
-                            <Button type="submit" className="mt-4" disabled={isSaving}>
+                            <Button type="submit" className="mt-6" disabled={isSaving}>
                                 {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                 Save Changes
                             </Button>

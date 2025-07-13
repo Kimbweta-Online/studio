@@ -118,9 +118,9 @@ export default function TherapistProfilePage() {
                 title: "Profile Saved",
                 description: "Your professional details have been updated successfully.",
             });
-        } catch (error) {
+        } catch (error: any) {
              console.error("Error updating profile:", error);
-            toast({ variant: "destructive", title: "Error", description: "Could not update your profile." });
+            toast({ variant: "destructive", title: "Update Failed", description: `Could not update your profile: ${error.message}` });
         } finally {
             setIsSaving(false);
         }
@@ -160,7 +160,7 @@ export default function TherapistProfilePage() {
                         <CardDescription>This information will be visible to clients.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <form onSubmit={handleSubmit} className="space-y-4">
+                      <form onSubmit={handleSubmit}>
                         <div className="flex items-center gap-4">
                              <Avatar className="h-20 w-20">
                                 {photoPreview ? (
@@ -190,15 +190,15 @@ export default function TherapistProfilePage() {
                                 <Input id="specialty" name="specialty" defaultValue={userData.specialty} />
                             </div>
                         </div>
-                         <div className="space-y-2">
+                         <div className="space-y-2 mt-4">
                             <Label htmlFor="bio">Short Bio</Label>
                             <Textarea id="bio" name="bio" placeholder="Tell clients about your approach..." rows={4} defaultValue={userData.bio} />
                         </div>
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-2 mt-4">
                             <Switch id="availability-status" name="availability-status" defaultChecked={userData.isOnline} />
                             <Label htmlFor="availability-status">Available for new bookings</Label>
                         </div>
-                        <Button type="submit" className="mt-4" disabled={isSaving}>
+                        <Button type="submit" className="mt-6" disabled={isSaving}>
                             {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             Save Changes
                         </Button>
