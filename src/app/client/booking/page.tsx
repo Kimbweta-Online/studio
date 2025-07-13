@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { CalendarDays, Phone, Trash2, Loader2 } from "lucide-react";
 import type { Booking, Therapist } from "@/lib/data";
 import { useAuth } from "@/context/auth-context";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ClientBookingPage() {
   const { toast } = useToast();
