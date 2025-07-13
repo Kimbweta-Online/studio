@@ -9,26 +9,15 @@ import { generateMentalHealthSupport } from "@/ai/flows/generate-mental-health-s
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Bot, Loader2, Send, Smile, Frown, Meh, Angry, Laugh } from "lucide-react";
+import { Bot, Loader2, Send, Smile, Paperclip, X } from "lucide-react";
 import { Skeleton } from "./ui/skeleton";
-import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
-
-const emotions = [
-    { value: 'Happy', emoji: '😊', icon: Smile },
-    { value: 'Sad', emoji: '😢', icon: Frown },
-    { value: 'Neutral', emoji: '😐', icon: Meh },
-    { value: 'Angry', emoji: '😠', icon: Angry },
-    { value: 'Joyful', emoji: '😂', icon: Laugh },
-];
 
 const formSchema = z.object({
   question: z.string().min(10, {
     message: "Please ask a more detailed question (at least 10 characters).",
-  }),
-  emotion: z.string({
-    required_error: "Please select how you're feeling.",
   }),
 });
 
@@ -37,6 +26,8 @@ type FormValues = z.infer<typeof formSchema>;
 export function AiChatForm() {
   const [aiResponse, setAiResponse] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const { toast } = useToast();
 
   const form = useForm<FormValues>({
@@ -46,14 +37,46 @@ export function AiChatForm() {
     },
   });
 
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  
+  const removeFile = () => {
+      setSelectedFile(null);
+      setPreviewUrl(null);
+      // Reset the file input
+      const fileInput = document.getElementById('photo') as HTMLInputElement;
+      if (fileInput) fileInput.value = "";
+  }
+
+
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
     setIsLoading(true);
     setAiResponse(null);
 
+    let photoDataUri: string | undefined = undefined;
+
+    if (selectedFile) {
+        const reader = new FileReader();
+        reader.readAsDataURL(selectedFile);
+        photoDataUri = await new Promise<string>((resolve, reject) => {
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = (error) => reject(error);
+        });
+    }
+
     try {
       const result = await generateMentalHealthSupport({
         question: data.question,
-        emotion: data.emotion,
+        photoDataUri: photoDataUri,
       });
       setAiResponse(result.answer);
     } catch (error) {
@@ -73,50 +96,17 @@ export function AiChatForm() {
       <Card>
         <CardHeader>
           <CardTitle className="font-headline text-2xl">Talk to Your AI Assistant</CardTitle>
-          <CardDescription>Share your thoughts and select an emotion to get supportive feedback.</CardDescription>
+          <CardDescription>Share your thoughts and optionally add a photo for more context.</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <FormField
                 control={form.control}
-                name="emotion"
-                render={({ field }) => (
-                  <FormItem className="space-y-3">
-                    <FormLabel>How are you feeling right now?</FormLabel>
-                    <FormControl>
-                      <RadioGroup
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                        className="flex flex-wrap gap-2 pt-2"
-                      >
-                        {emotions.map((emotion) => (
-                           <FormItem key={emotion.value} className="flex items-center space-x-2 space-y-0">
-                               <FormControl>
-                                   <RadioGroupItem value={emotion.value} id={`emotion-${emotion.value}`} className="sr-only" />
-                               </FormControl>
-                               <FormLabel
-                                htmlFor={`emotion-${emotion.value}`}
-                                className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
-                               >
-                                  <emotion.icon className="h-6 w-6 mb-1" />
-                                  <span className="text-2xl">{emotion.emoji}</span>
-                               </FormLabel>
-                           </FormItem>
-                        ))}
-                      </RadioGroup>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
                 name="question"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Your Question or Concern</FormLabel>
+                    <FormLabel>Your Question or Concern (Required)</FormLabel>
                     <FormControl>
                       <Textarea
                         placeholder="Tell me what's on your mind..."
@@ -128,6 +118,25 @@ export function AiChatForm() {
                   </FormItem>
                 )}
               />
+              
+              <FormItem>
+                 <FormLabel>Optional Photo</FormLabel>
+                 <FormControl>
+                    <div className="relative">
+                        <Input id="photo" type="file" accept="image/*" onChange={handleFileChange} className="pl-10" />
+                        <Paperclip className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    </div>
+                 </FormControl>
+                 {previewUrl && (
+                     <div className="mt-4 relative w-fit">
+                        <img src={previewUrl} alt="Selected preview" className="rounded-md max-h-40" />
+                        <Button variant="destructive" size="icon" className="absolute -top-2 -right-2 h-6 w-6 rounded-full" onClick={removeFile}>
+                            <X className="h-4 w-4" />
+                        </Button>
+                     </div>
+                 )}
+              </FormItem>
+
 
               <Button type="submit" disabled={isLoading} className="w-full">
                 {isLoading ? (
@@ -175,7 +184,7 @@ export function AiChatForm() {
             {!isLoading && !aiResponse && (
                 <div className="text-center text-muted-foreground py-10">
                     <Smile className="mx-auto h-12 w-12 mb-4" />
-                    <p>Your AI-generated response will appear here once you submit your question and emotion.</p>
+                    <p>Your AI-generated response will appear here once you submit your question.</p>
                 </div>
             )}
         </CardContent>
