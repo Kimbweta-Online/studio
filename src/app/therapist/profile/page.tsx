@@ -84,14 +84,14 @@ export default function TherapistProfilePage() {
         if (!user || !userData) return;
         setIsSaving(true);
 
-        const form = e.currentTarget;
-        const name = (form.elements.namedItem("name") as HTMLInputElement).value;
-        const specialty = (form.elements.namedItem("specialty") as HTMLInputElement).value;
-        const bio = (form.elements.namedItem("bio") as HTMLTextAreaElement).value;
-        const isAvailable = (form.elements.namedItem("availability-status") as HTMLInputElement).checked;
-        let imageUrl = userData.imageUrl;
-        
         try {
+            const form = e.currentTarget;
+            const name = (form.elements.namedItem("name") as HTMLInputElement).value;
+            const specialty = (form.elements.namedItem("specialty") as HTMLInputElement).value;
+            const bio = (form.elements.namedItem("bio") as HTMLTextAreaElement).value;
+            const isAvailable = (form.elements.namedItem("availability-status") as HTMLInputElement).checked;
+            let imageUrl = userData.imageUrl;
+            
             if (photoFile && photoPreview) {
                  const storageRef = ref(storage, `avatars/${user.uid}/${photoFile.name}`);
                  await uploadString(storageRef, photoPreview, 'data_url');

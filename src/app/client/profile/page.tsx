@@ -82,12 +82,12 @@ export default function ClientProfilePage() {
         if (!user || !userData) return;
         setIsSaving(true);
 
-        const form = e.currentTarget;
-        const name = (form.elements.namedItem("name") as HTMLInputElement).value;
-        const phone = (form.elements.namedItem("phone") as HTMLInputElement).value;
-        let imageUrl = userData.imageUrl;
-
         try {
+            const form = e.currentTarget;
+            const name = (form.elements.namedItem("name") as HTMLInputElement).value;
+            const phone = (form.elements.namedItem("phone") as HTMLInputElement).value;
+            let imageUrl = userData.imageUrl;
+
             if (photoFile && photoPreview) {
                  const storageRef = ref(storage, `avatars/${user.uid}/${photoFile.name}`);
                  await uploadString(storageRef, photoPreview, 'data_url');
