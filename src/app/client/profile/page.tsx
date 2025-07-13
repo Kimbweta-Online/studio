@@ -32,24 +32,26 @@ export default function ClientProfilePage() {
                                 <AvatarImage src="https://placehold.co/100x100.png" alt="Alex Johnson" />
                                 <AvatarFallback>AJ</AvatarFallback>
                             </Avatar>
-                            <Button variant="outline">Change Photo</Button>
+                            <Button variant="outline" onClick={() => alert('Change photo clicked!')}>Change Photo</Button>
                         </div>
                         <Separator />
-                        <div className="grid md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="name">Full Name</Label>
-                                <Input id="name" defaultValue="Alex Johnson" />
+                        <form onSubmit={(e) => { e.preventDefault(); alert('Profile saved!'); }}>
+                            <div className="grid md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="name">Full Name</Label>
+                                    <Input id="name" defaultValue="Alex Johnson" />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="email">Email Address</Label>
+                                    <Input id="email" type="email" defaultValue="alex.j@example.com" />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="phone">Phone Number</Label>
+                                    <Input id="phone" type="tel" defaultValue="+1 (555) 123-4567" />
+                                </div>
                             </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="email">Email Address</Label>
-                                <Input id="email" type="email" defaultValue="alex.j@example.com" />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="phone">Phone Number</Label>
-                                <Input id="phone" type="tel" defaultValue="+1 (555) 123-4567" />
-                            </div>
-                        </div>
-                        <Button>Save Changes</Button>
+                            <Button type="submit" className="mt-4">Save Changes</Button>
+                        </form>
                     </CardContent>
                 </Card>
             </div>

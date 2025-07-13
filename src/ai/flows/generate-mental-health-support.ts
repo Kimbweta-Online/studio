@@ -21,7 +21,7 @@ const GenerateMentalHealthSupportInputSchema = z.object({
 export type GenerateMentalHealthSupportInput = z.infer<typeof GenerateMentalHealthSupportInputSchema>;
 
 const GenerateMentalHealthSupportOutputSchema = z.object({
-  answer: z.string().describe('The AI-generated mental health support.'),
+  answer: z.string().describe('The AI-generated mental health support. The response should be formatted in markdown.'),
 });
 export type GenerateMentalHealthSupportOutput = z.infer<typeof GenerateMentalHealthSupportOutputSchema>;
 
@@ -33,7 +33,8 @@ const prompt = ai.definePrompt({
   name: 'generateMentalHealthSupportPrompt',
   input: {schema: GenerateMentalHealthSupportInputSchema},
   output: {schema: GenerateMentalHealthSupportOutputSchema},
-  prompt: `You are an AI mental health support assistant. A client has asked the following question related to their mental health:
+  prompt: `You are an AI mental health support assistant. A client has asked the following question related to their mental health.
+Your response must be in Markdown format.
 
 Question: {{{question}}}
 
@@ -41,7 +42,8 @@ They have also provided the following image:
 
 Image: {{media url=photoDataUri}}
 
-Provide a supportive and helpful answer to their question. Focus on providing practical advice and guidance. Do not provide a diagnosis.`,
+Provide a supportive and helpful answer to their question. Focus on providing practical advice and guidance. Do not provide a diagnosis.
+If the user seems to be in immediate danger or distress, provide contact information for a crisis hotline like the National Suicide Prevention Lifeline at 988.`,
 });
 
 const generateMentalHealthSupportFlow = ai.defineFlow(

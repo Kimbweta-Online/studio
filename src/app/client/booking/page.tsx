@@ -67,7 +67,7 @@ export default function ClientBookingPage() {
                           className="rounded-md border"
                         />
                     </div>
-                    <Button>Confirm Booking</Button>
+                    <Button onClick={() => alert('Booking confirmed!')}>Confirm Booking</Button>
                   </DialogContent>
                 </Dialog>
               </CardFooter>
@@ -98,7 +98,7 @@ export default function ClientBookingPage() {
                     <Button variant="outline" size="icon" asChild>
                         <a href={`tel:${therapist?.phone}`}><Phone className="h-4 w-4" /></a>
                     </Button>
-                    <Button variant="destructive" size="icon">
+                    <Button variant="destructive" size="icon" onClick={() => alert(`Cancelled booking ${booking.id}`)}>
                         <Trash2 className="h-4 w-4" />
                     </Button>
                 </div>

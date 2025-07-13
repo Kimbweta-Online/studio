@@ -29,13 +29,14 @@ export default function TherapistProfilePage() {
                         <CardTitle className="font-headline">Professional Details</CardTitle>
                         <CardDescription>This information will be visible to clients.</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
+                    <CardContent>
+                      <form onSubmit={(e) => { e.preventDefault(); alert('Profile saved!'); }} className="space-y-4">
                         <div className="flex items-center gap-4">
                              <Avatar className="h-20 w-20">
                                 <AvatarImage src={currentTherapist.imageUrl} alt={currentTherapist.name} />
                                 <AvatarFallback>{currentTherapist.name.charAt(0)}</AvatarFallback>
                             </Avatar>
-                            <Button variant="outline">Change Photo</Button>
+                            <Button variant="outline" type="button" onClick={() => alert('Change photo clicked!')}>Change Photo</Button>
                         </div>
                         <Separator />
                         <div className="grid md:grid-cols-2 gap-4">
@@ -56,7 +57,8 @@ export default function TherapistProfilePage() {
                             <Switch id="availability-status" defaultChecked={currentTherapist.isOnline} />
                             <Label htmlFor="availability-status">Available for new bookings</Label>
                         </div>
-                        <Button>Save Changes</Button>
+                        <Button type="submit">Save Changes</Button>
+                      </form>
                     </CardContent>
                 </Card>
             </div>

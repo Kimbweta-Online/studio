@@ -24,20 +24,22 @@ export default function TherapistDashboard() {
                         <CardTitle className="font-headline">Upload a Motivational Quote</CardTitle>
                         <CardDescription>Share some inspiration with the community.</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="title">Title</Label>
-                            <Input id="title" placeholder="e.g., Embrace the Journey" />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="description">Description</Label>
-                            <Textarea id="description" placeholder="e.g., Every step is progress..." />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="image">Image</Label>
-                            <Input id="image" type="file" />
-                        </div>
-                        <Button><Upload className="mr-2 h-4 w-4" /> Upload Quote</Button>
+                    <CardContent>
+                      <form onSubmit={(e) => { e.preventDefault(); alert('Quote uploaded!'); }} className="space-y-4">
+                          <div className="space-y-2">
+                              <Label htmlFor="title">Title</Label>
+                              <Input id="title" placeholder="e.g., Embrace the Journey" />
+                          </div>
+                          <div className="space-y-2">
+                              <Label htmlFor="description">Description</Label>
+                              <Textarea id="description" placeholder="e.g., Every step is progress..." />
+                          </div>
+                          <div className="space-y-2">
+                              <Label htmlFor="image">Image</Label>
+                              <Input id="image" type="file" />
+                          </div>
+                          <Button type="submit"><Upload className="mr-2 h-4 w-4" /> Upload Quote</Button>
+                      </form>
                     </CardContent>
                 </Card>
             </div>
