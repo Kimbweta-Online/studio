@@ -7,6 +7,7 @@ import { getStorage } from "firebase/storage";
 const firebaseConfig = {
   apiKey: "AIzaSyBp3ukSANB6kAaXpnK5LgHxMhtyYSpVwvw",
   authDomain: "dr-mindset.firebaseapp.com",
+  databaseURL: "https://dr-mindset-default-rtdb.firebaseio.com",
   projectId: "dr-mindset",
   storageBucket: "dr-mindset.firebasestorage.app",
   messagingSenderId: "16123595851",
