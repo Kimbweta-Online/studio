@@ -46,8 +46,10 @@ export default function LoginPage() {
         toast({
             variant: "destructive",
             title: "Login Failed",
-            description: "User data not found. Please contact support.",
+            description: "User data not found. Please sign up or contact support.",
         });
+        // Log the user out if their firestore doc is missing
+        await auth.signOut();
         return;
       }
       
