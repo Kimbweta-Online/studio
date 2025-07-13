@@ -1,3 +1,7 @@
+"use client";
+
+import { useState } from "react";
+import Image from "next/image";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,6 +14,21 @@ import { Upload } from "lucide-react";
 
 export default function TherapistDashboard() {
     const onlineUsers = [...clients.filter(c => c.isOnline), ...therapists.filter(t => t.isOnline)];
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+    const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImagePreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        } else {
+            setImagePreview(null);
+        }
+    };
+
   return (
     <div className="space-y-8">
       <div>
@@ -36,8 +55,18 @@ export default function TherapistDashboard() {
                           </div>
                           <div className="space-y-2">
                               <Label htmlFor="image">Image</Label>
-                              <Input id="image" type="file" />
+                              <Input id="image" type="file" onChange={handleImageChange} accept="image/*" />
                           </div>
+                          {imagePreview && (
+                            <div className="relative w-full h-48 mt-2 rounded-lg overflow-hidden border">
+                                <Image
+                                    src={imagePreview}
+                                    alt="Quote preview"
+                                    fill
+                                    style={{ objectFit: 'cover' }}
+                                />
+                            </div>
+                          )}
                           <Button type="submit"><Upload className="mr-2 h-4 w-4" /> Upload Quote</Button>
                       </form>
                     </CardContent>
