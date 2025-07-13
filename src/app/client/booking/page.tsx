@@ -1,3 +1,6 @@
+
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -8,8 +11,10 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Calendar } from "@/components/ui/calendar";
 import { bookings, therapists } from "@/lib/data";
 import { CalendarDays, Phone, Trash2, User } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function ClientBookingPage() {
+  const { toast } = useToast();
   const clientBookings = bookings.filter(b => b.clientId === 'c1');
 
   const getStatusVariant = (status: string) => {
@@ -20,6 +25,21 @@ export default function ClientBookingPage() {
       default: return 'destructive';
     }
   };
+  
+  const handleBooking = () => {
+    toast({
+      title: "Booking Confirmed",
+      description: "Your session has been successfully scheduled.",
+    });
+  }
+  
+  const handleCancel = (bookingId: string) => {
+    toast({
+        variant: "destructive",
+        title: "Booking Cancelled",
+        description: `Your booking (ID: ${bookingId}) has been cancelled.`,
+    })
+  }
 
   return (
     <div className="space-y-8">
@@ -67,7 +87,7 @@ export default function ClientBookingPage() {
                           className="rounded-md border"
                         />
                     </div>
-                    <Button onClick={() => alert('Booking confirmed!')}>Confirm Booking</Button>
+                    <Button onClick={handleBooking}>Confirm Booking</Button>
                   </DialogContent>
                 </Dialog>
               </CardFooter>
@@ -98,7 +118,7 @@ export default function ClientBookingPage() {
                     <Button variant="outline" size="icon" asChild>
                         <a href={`tel:${therapist?.phone}`}><Phone className="h-4 w-4" /></a>
                     </Button>
-                    <Button variant="destructive" size="icon" onClick={() => alert(`Cancelled booking ${booking.id}`)}>
+                    <Button variant="destructive" size="icon" onClick={() => handleCancel(booking.id)}>
                         <Trash2 className="h-4 w-4" />
                     </Button>
                 </div>
