@@ -12,10 +12,11 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Calendar } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarDays, Phone, Trash2, Loader2 } from "lucide-react";
+import { CalendarDays, Phone, Trash2, Loader2, MessageCircle } from "lucide-react";
 import type { Booking, Therapist } from "@/lib/data";
 import { useAuth } from "@/context/auth-context";
 import { Skeleton } from "@/components/ui/skeleton";
+import Link from "next/link";
 
 export default function ClientBookingPage() {
   const { toast } = useToast();
@@ -155,10 +156,15 @@ export default function ClientBookingPage() {
                         <Badge variant="secondary">Offline</Badge>
                     )}
                 </CardContent>
-                <CardFooter>
+                <CardFooter className="flex-col items-stretch space-y-2">
+                    <Button asChild>
+                        <Link href={`/client/chat/${therapist.id}`}>
+                            <MessageCircle className="mr-2 h-4 w-4" /> Chat Now
+                        </Link>
+                    </Button>
                     <Dialog>
                     <DialogTrigger asChild>
-                        <Button className="w-full"><CalendarDays className="mr-2 h-4 w-4" /> Book Now</Button>
+                        <Button variant="outline"><CalendarDays className="mr-2 h-4 w-4" /> Book Now</Button>
                     </DialogTrigger>
                     <DialogContent>
                         <DialogHeader>

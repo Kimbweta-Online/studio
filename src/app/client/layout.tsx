@@ -19,7 +19,7 @@ import {
   SidebarInset,
 } from "@/components/ui/sidebar";
 import { Logo } from "@/components/logo";
-import { Bot, CalendarDays, LayoutGrid, LogOut, User } from "lucide-react";
+import { Bot, CalendarDays, LayoutGrid, LogOut, MessageCircle, User } from "lucide-react";
 import { useAuth } from '@/context/auth-context';
 import { auth, db } from '@/lib/firebase';
 import { signOut } from 'firebase/auth';
@@ -34,7 +34,7 @@ export default function ClientLayout({
   const router = useRouter();
   const { user, loading } = useAuth();
   const [avatar, setAvatar] = useState('😀');
-  const isActive = (path: string) => pathname === path;
+  const isActive = (path: string) => pathname.startsWith(path);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -87,6 +87,14 @@ export default function ClientLayout({
                   <Link href="/client/dashboard">
                     <LayoutGrid />
                     <span>Dashboard</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+               <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={isActive("/client/chat")}>
+                  <Link href="/client/chat">
+                    <MessageCircle />
+                    <span>Chats</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

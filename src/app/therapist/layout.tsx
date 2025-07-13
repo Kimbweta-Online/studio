@@ -19,7 +19,7 @@ import {
   SidebarInset,
 } from "@/components/ui/sidebar";
 import { Logo } from "@/components/logo";
-import { CalendarCheck, LayoutGrid, LogOut, User } from "lucide-react";
+import { CalendarCheck, LayoutGrid, LogOut, MessageCircle, User } from "lucide-react";
 import { useAuth } from '@/context/auth-context';
 import { auth, db } from '@/lib/firebase';
 import { signOut } from 'firebase/auth';
@@ -34,7 +34,7 @@ export default function TherapistLayout({
   const router = useRouter();
   const { user, loading } = useAuth();
   const [avatar, setAvatar] = useState('🧑‍⚕️');
-  const isActive = (path: string) => pathname === path;
+  const isActive = (path: string) => pathname.startsWith(path);
   
   useEffect(() => {
     if (!loading && !user) {
@@ -44,7 +44,14 @@ export default function TherapistLayout({
             const userDocRef = doc(db, "users", user.uid);
             const userDoc = await getDoc(userDocRef);
             if (userDoc.exists()) {
-                setAvatar(userDoc.data().avatar || '🧑‍⚕️');
+                const data = userDoc.data();
+                if(data.role !== 'therapist') {
+                    router.push('/login');
+                    return;
+                }
+                setAvatar(data.avatar || '🧑‍⚕️');
+            } else {
+                 router.push('/login');
             }
         };
         fetchUserData();
@@ -88,6 +95,14 @@ export default function TherapistLayout({
                   <Link href="/therapist/dashboard">
                     <LayoutGrid />
                     <span>Dashboard</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={isActive("/therapist/chats")}>
+                  <Link href="/therapist/chats">
+                    <MessageCircle />
+                    <span>Chats</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
