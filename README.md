@@ -15,7 +15,9 @@ Mindset Theater is a comprehensive mental health support application designed to
 -   Genkit: Powering the intelligent AI therapist feature.
 
 ## Project Link
-You can view the project here: [Mindset Theater](https://github.com/Kimbweta-Online/studio)
+You can view the project here:
+
+https://studio--mindful-journey-k1zhu.us-central1.hosted.app
 
 
 ## Getting Started
