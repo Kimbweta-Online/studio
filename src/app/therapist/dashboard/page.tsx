@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Upload, Smile, Star, Heart, Lightbulb } from "lucide-react";
+import { Loader2, Upload } from "lucide-react";
 import { db } from "@/lib/firebase";
 import { collection, query, getDocs, where, addDoc, serverTimestamp } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
@@ -30,10 +30,10 @@ type User = {
 }
 
 const quoteEmojis = [
-    { value: '😊', label: 'Happy', icon: Smile },
-    { value: '⭐', label: 'Inspiring', icon: Star },
-    { value: '❤️', label: 'Love', icon: Heart },
-    { value: '💡', label: 'Insightful', icon: Lightbulb },
+    { value: '😊', label: 'Happy' },
+    { value: '⭐', label: 'Inspiring' },
+    { value: '❤️', label: 'Love' },
+    { value: '💡', label: 'Insightful' },
 ];
 
 const formSchema = z.object({
