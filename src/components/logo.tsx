@@ -4,7 +4,7 @@ import Image from 'next/image';
 export function Logo({ className }: { className?: string }) {
   return (
     <Image
-      src="/images/mt_logo.png"
+      src="https://placehold.co/32x32.png"
       alt="Mindset Theater Logo"
       width={32}
       height={32}
