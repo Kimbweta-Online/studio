@@ -112,6 +112,14 @@ export default function Home() {
       </main>
       <footer className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center text-muted-foreground">
         <p>&copy; {new Date().getFullYear()} Mindset Theater. All rights reserved.</p>
+        <div className="mt-4 text-xs space-y-1">
+          <p>Developed by Goodluck Stanley</p>
+          <p>
+            <a href="mailto:goodluckstanley20@gmail.com" className="hover:underline">goodluckstanley20@gmail.com</a>
+            <span className="mx-2">|</span>
+            <a href="tel:0678971494" className="hover:underline">0678971494</a>
+          </p>
+        </div>
       </footer>
     </div>
   );
