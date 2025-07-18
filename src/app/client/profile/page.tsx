@@ -181,7 +181,7 @@ export default function ClientProfilePage() {
                 <Card>
                     <CardHeader>
                         <CardTitle className="font-headline">Booking Summary</CardTitle>
-                        <CardDescription>Your activity on Mindful Journey.</CardDescription>
+                        <CardDescription>Your activity on Mindset Theater.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="flex justify-between items-center">

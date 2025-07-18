@@ -84,7 +84,7 @@ export default function TherapistLayout({
             <div className="flex items-center gap-2">
               <Logo />
               <span className="font-bold font-headline text-lg">
-                Mindful Journey
+                Mindset Theater
               </span>
             </div>
           </SidebarHeader>

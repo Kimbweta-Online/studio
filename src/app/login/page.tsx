@@ -100,7 +100,7 @@ export default function LoginPage() {
             <Link href="/" className="flex items-center justify-center gap-2 mb-4">
                 <Logo />
                 <span className="text-xl font-bold font-headline text-foreground">
-                Mindful Journey
+                Mindset Theater
                 </span>
             </Link>
           <CardTitle className="font-headline">Welcome Back</CardTitle>

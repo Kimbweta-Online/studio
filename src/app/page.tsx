@@ -12,7 +12,7 @@ export default function Home() {
           <Link href="/" className="flex items-center gap-2">
             <Logo />
             <span className="text-xl font-bold font-headline text-foreground">
-              Mindful Journey
+              Mindset Theater
             </span>
           </Link>
           <div className="flex items-center gap-2">
@@ -31,7 +31,7 @@ export default function Home() {
             Find Your Path to a Healthier Mind
           </h1>
           <p className="max-w-2xl mx-auto text-lg md:text-xl text-muted-foreground mb-8">
-            Mindful Journey offers AI-powered support and seamless connections with professional therapists to guide you on your path to mental wellness.
+            Mindset Theater offers AI-powered support and seamless connections with professional therapists to guide you on your path to mental wellness.
           </p>
           <div className="flex justify-center gap-4">
             <Button asChild size="lg">
@@ -111,7 +111,7 @@ export default function Home() {
         </section>
       </main>
       <footer className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center text-muted-foreground">
-        <p>&copy; {new Date().getFullYear()} Mindful Journey. All rights reserved.</p>
+        <p>&copy; {new Date().getFullYear()} Mindset Theater. All rights reserved.</p>
       </footer>
     </div>
   );

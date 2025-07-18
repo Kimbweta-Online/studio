@@ -4,7 +4,7 @@ import { AuthProvider } from "@/context/auth-context";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Mindful Journey",
+  title: "Mindset Theater",
   description: "AI-powered therapy assistance and booking system",
 };
 
