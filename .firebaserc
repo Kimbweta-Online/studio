@@ -1,7 +1,7 @@
 {
   "projects": {
     "default": "dr-mindset",
-    "staging": "mindful-journey-k1zhu"
+    "staging": "dr-mindset"
   },
   "targets": {},
   "etags": {}

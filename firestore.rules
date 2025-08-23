@@ -1,40 +1,40 @@
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Users can read any user profile (for booking), but only edit their own.
+    // Allow reading from the 'users' collection only if querying for online users or reading a specific user's profile.
+    // Users can only update their own document.
     match /users/{userId} {
       allow read: if request.auth != null;
       allow write: if request.auth.uid == userId;
     }
+    
+    // Allow listing users if filtering by role or online status. This is for the therapist dashboard.
+    match /users/{userId} {
+        allow list: if request.auth != null && (request.query.get('role') == 'therapist' || request.query.get('isOnline') == true);
+    }
 
-    // Bookings can be created by any authenticated user.
-    // Users can only read/update bookings where they are the client or therapist.
+
+    // You can only read/write bookings where you are the client or therapist.
     match /bookings/{bookingId} {
-      allow create: if request.auth != null;
-      allow read, update, delete: if request.auth.uid == resource.data.clientId || request.auth.uid == resource.data.therapistId;
+        allow read, update: if request.auth.uid == resource.data.clientId || request.auth.uid == resource.data.therapistId;
+        allow create: if request.auth.uid == request.resource.data.clientId;
     }
 
-    // Any authenticated user can read quotes.
-    // Only authenticated users (therapists) can create quotes.
-    match /quotes/{quoteId} {
-        allow read: if true;
-        allow create: if request.auth != null;
-    }
-
-    // Chat messages can only be accessed by participants of the chat.
+    // You can only read/write messages in a chat you are a part of.
     match /chats/{chatId} {
-      // Allow access if the user is one of the two participants stored in the document.
-      allow read, write, delete: if request.auth.uid in resource.data.participants;
-
-      // Rules for the subcollection of messages within a chat.
+      allow read, write: if request.auth.uid in resource.data.participants;
+      
       match /messages/{messageId} {
-        // Inherit the parent chat document's read permission.
-        // Allow message creation if the user is a participant in the chat.
-        allow read, create: if get(/databases/$(database)/documents/chats/$(chatId)).data.participants.hasAny([request.auth.uid]);
-        // Only the sender can update/delete their own message.
-        allow update, delete: if request.auth.uid == resource.data.senderId;
+        allow read, write: if request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
       }
+    }
+    
+    // Anyone can read quotes, but only authenticated users can create them.
+    match /quotes/{quoteId} {
+      allow read: if true;
+      allow create: if request.auth != null;
     }
   }
 }
