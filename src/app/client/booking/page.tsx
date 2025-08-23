@@ -25,10 +25,11 @@ export default function ClientBookingPage() {
   const [therapists, setTherapists] = useState<Therapist[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [isScheduling, setIsScheduling] = useState(false);
 
   useEffect(() => {
+    setSelectedDate(new Date());
     const fetchData = async () => {
       setLoading(true);
       try {
