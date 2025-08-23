@@ -24,43 +24,55 @@ export default function ClientBookingPage() {
   
   const [therapists, setTherapists] = useState<Therapist[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loadingTherapists, setLoadingTherapists] = useState(true);
+  const [loadingBookings, setLoadingBookings] = useState(true);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [isScheduling, setIsScheduling] = useState(false);
 
   useEffect(() => {
     setSelectedDate(new Date());
-    const fetchData = async () => {
-      setLoading(true);
+    const fetchTherapists = async () => {
+      setLoadingTherapists(true);
       try {
-        // Fetch therapists
         const therapistsQuery = query(collection(db, "users"), where("role", "==", "therapist"));
         const therapistsSnapshot = await getDocs(therapistsQuery);
         const therapistsList = therapistsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Therapist));
         setTherapists(therapistsList);
-
-        // Fetch client's bookings
-        if (user) {
-          const bookingsQuery = query(collection(db, "bookings"), where("clientId", "==", user.uid));
-          const bookingsSnapshot = await getDocs(bookingsQuery);
-          const bookingsList = await Promise.all(bookingsSnapshot.docs.map(async (bookingDoc) => {
-            const bookingData = bookingDoc.data();
-            // Firestore timestamps need to be converted to JS Dates
-            const date = (bookingData.date as any).toDate(); 
-            return { id: bookingDoc.id, ...bookingData, date } as Booking;
-          }));
-          setBookings(bookingsList);
-        }
       } catch (error) {
-        console.error("Error fetching data: ", error);
-        toast({ variant: "destructive", title: "Error", description: "Failed to load booking data." });
+        console.error("Error fetching therapists: ", error);
+        toast({ variant: "destructive", title: "Error", description: "Failed to load therapist data." });
       } finally {
-        setLoading(false);
+        setLoadingTherapists(false);
       }
     };
-    fetchData();
-  }, [user, toast]);
+    fetchTherapists();
+  }, [toast]);
   
+  useEffect(() => {
+    const fetchBookings = async () => {
+       if (user) {
+          setLoadingBookings(true);
+          try {
+            const bookingsQuery = query(collection(db, "bookings"), where("clientId", "==", user.uid));
+            const bookingsSnapshot = await getDocs(bookingsQuery);
+            const bookingsList = await Promise.all(bookingsSnapshot.docs.map(async (bookingDoc) => {
+              const bookingData = bookingDoc.data();
+              const date = (bookingData.date as any).toDate(); 
+              return { id: bookingDoc.id, ...bookingData, date } as Booking;
+            }));
+            setBookings(bookingsList);
+          } catch(error) {
+            console.error("Error fetching bookings: ", error);
+            toast({ variant: "destructive", title: "Error", description: "Failed to load booking data." });
+          } finally {
+            setLoadingBookings(false);
+          }
+        } else {
+            setLoadingBookings(false);
+        }
+    }
+    fetchBookings();
+  }, [user, toast]);
 
   const getStatusVariant = (status: string) => {
     switch (status) {
@@ -131,7 +143,7 @@ export default function ClientBookingPage() {
 
       <section>
         <h2 className="text-2xl font-bold font-headline mb-4">Available Therapists</h2>
-        {loading ? (
+        {loadingTherapists ? (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 <Card><CardHeader><Skeleton className="h-16 w-16 rounded-full" /></CardHeader><CardContent><Skeleton className="h-24 w-full"/></CardContent><CardFooter><Skeleton className="h-10 w-full"/></CardFooter></Card>
                 <Card><CardHeader><Skeleton className="h-16 w-16 rounded-full" /></CardHeader><CardContent><Skeleton className="h-24 w-full"/></CardContent><CardFooter><Skeleton className="h-10 w-full"/></CardFooter></Card>
@@ -196,7 +208,24 @@ export default function ClientBookingPage() {
        <section>
         <h2 className="text-2xl font-bold font-headline mb-4">Your Bookings</h2>
         <div className="space-y-4">
-          {bookings.length > 0 ? bookings.map(booking => {
+          {loadingBookings ? (
+             Array.from({ length: 2 }).map((_, i) => (
+                <Card key={i} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 gap-4">
+                     <div className="flex items-center gap-4">
+                        <Skeleton className="h-12 w-12 rounded-full" />
+                        <div className="space-y-2">
+                            <Skeleton className="h-4 w-48" />
+                            <Skeleton className="h-4 w-64" />
+                        </div>
+                     </div>
+                     <div className="flex items-center gap-2 self-end sm:self-center">
+                        <Skeleton className="h-6 w-20 rounded-full" />
+                        <Skeleton className="h-9 w-9" />
+                        <Skeleton className="h-9 w-9" />
+                     </div>
+                </Card>
+             ))
+          ) : bookings.length > 0 ? bookings.map(booking => {
             const therapist = therapists.find(t => t.id === booking.therapistId);
             return (
               <Card key={booking.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 gap-4">
