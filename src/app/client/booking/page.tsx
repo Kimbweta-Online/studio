@@ -151,7 +151,7 @@ export default function ClientBookingPage() {
                 </CardHeader>
                 <CardContent>
                     {therapist.isOnline ? (
-                        <Badge variant="default" className="bg-green-500/80">Online</Badge>
+                        <Badge className="bg-green-500 hover:bg-green-600">Online</Badge>
                     ) : (
                         <Badge variant="secondary">Offline</Badge>
                     )}
