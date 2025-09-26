@@ -19,11 +19,16 @@ import {
   SidebarInset,
 } from "@/components/ui/sidebar";
 import { Logo } from "@/components/logo";
-import { CalendarCheck, LayoutGrid, LogOut, MessageCircle, User, Quote } from "lucide-react";
+import { CalendarCheck, LayoutGrid, LogOut, MessageCircle, User, Quote, Bell } from "lucide-react";
 import { useAuth } from '@/context/auth-context';
 import { auth, db } from '@/lib/firebase';
 import { signOut } from 'firebase/auth';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { collection, doc, getDoc, updateDoc, onSnapshot, query, where, orderBy } from 'firebase/firestore';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
+import type { Notification } from '@/lib/data';
+import { formatDistanceToNow } from 'date-fns';
 
 export default function TherapistLayout({
   children,
@@ -34,7 +39,10 @@ export default function TherapistLayout({
   const router = useRouter();
   const { user, loading } = useAuth();
   const [avatar, setAvatar] = useState('🧑‍⚕️');
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const isActive = (path: string) => pathname.startsWith(path);
+  
+  const unreadCount = notifications.filter(n => !n.isRead).length;
   
   useEffect(() => {
     if (!loading && !user) {
@@ -55,12 +63,28 @@ export default function TherapistLayout({
             }
         };
         fetchUserData();
+        
+        const notifQuery = query(
+          collection(db, 'notifications'),
+          where('userId', '==', user.uid),
+          orderBy('createdAt', 'desc')
+        );
+        const unsubscribe = onSnapshot(notifQuery, (snapshot) => {
+            const notifs = snapshot.docs.map(d => ({id: d.id, ...d.data(), createdAt: d.data().createdAt.toDate()} as Notification));
+            setNotifications(notifs);
+        });
+
+        return () => unsubscribe();
     }
   }, [user, loading, router]);
+  
+  const handleMarkAsRead = async (notificationId: string) => {
+    const notifRef = doc(db, 'notifications', notificationId);
+    await updateDoc(notifRef, { isRead: true });
+  }
 
   const handleLogout = async () => {
     if (user) {
-        // Set user offline in Firestore
         const userDocRef = doc(db, "users", user.uid);
         await updateDoc(userDocRef, { isOnline: false });
     }
@@ -152,6 +176,41 @@ export default function TherapistLayout({
           <header className="flex items-center justify-between p-4 border-b bg-background sticky top-0 z-10 md:justify-end">
              <SidebarTrigger className="md:hidden" />
              <div className="flex items-center gap-4">
+                 <Popover>
+                    <PopoverTrigger asChild>
+                         <Button variant="outline" size="icon" className="relative">
+                            <Bell />
+                            {unreadCount > 0 && (
+                                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-xs text-white">
+                                    {unreadCount}
+                                </span>
+                            )}
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-80 p-0">
+                       <div className="p-4 border-b">
+                            <h4 className="font-medium text-sm">Notifications</h4>
+                        </div>
+                        <ScrollArea className="h-96">
+                            {notifications.length > 0 ? (
+                                notifications.map(notif => (
+                                    <div key={notif.id} className="p-4 border-b hover:bg-secondary">
+                                        <Link href={notif.link} onClick={() => handleMarkAsRead(notif.id)}>
+                                            <p className="font-semibold text-sm">{notif.title}</p>
+                                            <p className="text-sm text-muted-foreground">{notif.message}</p>
+                                            <p className="text-xs text-muted-foreground mt-1">
+                                                {formatDistanceToNow(notif.createdAt, { addSuffix: true })}
+                                            </p>
+                                        </Link>
+                                         {!notif.isRead && <div className="absolute right-4 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full bg-primary" />}
+                                    </div>
+                                ))
+                            ) : (
+                                <p className="text-center text-sm text-muted-foreground p-8">No notifications yet.</p>
+                            )}
+                        </ScrollArea>
+                    </PopoverContent>
+                </Popover>
                 <p className="text-sm text-muted-foreground">Welcome back, {user.displayName || "Therapist"}!</p>
              </div>
           </header>
@@ -161,3 +220,5 @@ export default function TherapistLayout({
     </SidebarProvider>
   );
 }
+
+    

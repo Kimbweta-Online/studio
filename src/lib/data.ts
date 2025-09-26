@@ -54,6 +54,16 @@ export type ChatMessage = {
     voiceUrl?: string;
 }
 
+export type Notification = {
+    id: string;
+    userId: string;
+    title: string;
+    message: string;
+    link: string;
+    isRead: boolean;
+    createdAt: Date;
+}
+
 
 // The static arrays (therapists, quotes, bookings, clients) have been removed.
 // The application will now fetch this data from Firebase Firestore.
@@ -79,3 +89,5 @@ export const quotes: Omit<Quote, 'id' | 'authorId' | 'authorName' | 'createdAt'>
     emoji: '👟', 
   },
 ];
+
+    

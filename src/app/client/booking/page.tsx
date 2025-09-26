@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
-import { collection, query, where, getDocs, doc, setDoc, getDoc } from "firebase/firestore";
+import { collection, query, where, getDocs, doc, setDoc, getDoc, addDoc, serverTimestamp } from "firebase/firestore";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -135,8 +135,9 @@ export default function ClientBookingPage() {
     try {
         const newBookingRef = doc(collection(db, "bookings"));
         const clientDoc = await getDoc(doc(db, "users", user.uid));
+        const clientData = clientDoc.data();
 
-        if (!clientDoc.exists()) {
+        if (!clientData) {
             throw new Error("Client user document not found!");
         }
 
@@ -149,7 +150,7 @@ export default function ClientBookingPage() {
         const newBooking: Omit<Booking, 'id'> = {
             therapistId: therapist.id,
             clientId: user.uid,
-            clientName: clientDoc.data().name || "Unknown Client",
+            clientName: clientData.name || "Unknown Client",
             date: finalDate,
             status: 'Pending',
             duration: durationInfo ? parseInt(durationInfo.value) : 0,
@@ -158,7 +159,27 @@ export default function ClientBookingPage() {
         
         await setDoc(newBookingRef, newBooking);
         
-        // Add to both allBookings and myBookings state for immediate UI update
+        // Create notifications
+        const notificationsRef = collection(db, 'notifications');
+        // Notification for therapist
+        await addDoc(notificationsRef, {
+            userId: therapist.id,
+            title: 'New Booking Request',
+            message: `You have a new booking request from ${clientData.name}.`,
+            link: '/therapist/booking',
+            isRead: false,
+            createdAt: serverTimestamp(),
+        });
+         // Notification for client
+        await addDoc(notificationsRef, {
+            userId: user.uid,
+            title: 'Booking Request Sent',
+            message: `Your booking request to ${therapist.name} is pending.`,
+            link: '/client/booking',
+            isRead: false,
+            createdAt: serverTimestamp(),
+        });
+
         const bookingWithId = { ...newBooking, id: newBookingRef.id, date: finalDate };
         setAllBookings(prev => [...prev, bookingWithId]);
         setMyBookings(prev => [...prev, bookingWithId]);
@@ -396,3 +417,5 @@ export default function ClientBookingPage() {
       </section>
     </div>
   );
+
+    
