@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { quotes as staticQuotes } from '@/lib/data';
 import { ArrowRight, Bot } from 'lucide-react';
 import { Player } from '@lottiefiles/react-lottie-player';
+import { LosadaRatioWidget } from '@/components/losada-ratio-widget';
 
 // A type for the local quote data
 type StaticQuote = {
@@ -24,7 +25,7 @@ export default function ClientDashboard() {
     // Use the static quotes from the data file.
     // We shuffle them to show a different set on each page load.
     const shuffledQuotes = [...staticQuotes].sort(() => 0.5 - Math.random());
-    setQuotes(shuffledQuotes.slice(0, 4));
+    setQuotes(shuffledQuotes.slice(0, 2));
   }, []);
 
   return (
@@ -33,6 +34,8 @@ export default function ClientDashboard() {
         <h1 className="text-3xl font-bold font-headline">Client Dashboard</h1>
         <p className="text-muted-foreground">Your space for growth and support.</p>
       </div>
+
+       <LosadaRatioWidget />
 
       <Card className="bg-primary/10 border-primary/20 shadow-lg">
         <CardContent className="p-6 flex flex-col md:flex-row items-center gap-6">
