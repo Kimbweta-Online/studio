@@ -76,54 +76,54 @@ export default function AdminLayout({
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen">
-        <Sidebar>
-          <SidebarHeader>
-            <div className="flex items-center gap-2">
-              <Logo />
-              <span className="font-bold font-headline text-lg">
-                Mindset Theater
-              </span>
-            </div>
-          </SidebarHeader>
-          <SidebarContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive("/admin/dashboard")}>
-                  <Link href="/admin/dashboard">
-                    <LayoutGrid />
-                    <span>Dashboard</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarContent>
-          <SidebarFooter>
-             <div className="flex items-center gap-3">
-                <Avatar className="bg-secondary text-2xl flex items-center justify-center">
-                    <span>👑</span>
-                </Avatar>
-                <div className="flex flex-col">
-                    <span className="font-semibold">{user.displayName || "Super Admin"}</span>
-                    <span className="text-xs text-muted-foreground">{user.email}</span>
-                </div>
-            </div>
-            <Button onClick={handleLogout} variant="ghost" className="justify-start gap-2">
-                <LogOut/>
-                <span>Logout</span>
-            </Button>
-          </SidebarFooter>
-        </Sidebar>
-        <SidebarInset>
-          <header className="flex items-center justify-between p-4 border-b bg-background sticky top-0 z-10 md:justify-end">
-             <SidebarTrigger className="md:hidden" />
-             <div className="flex items-center gap-4">
-                <p className="text-sm text-muted-foreground">Welcome back, Super Admin!</p>
-             </div>
-          </header>
-          <main className="p-4 sm:p-6 lg:p-8 flex-1">{children}</main>
-        </SidebarInset>
-      </div>
+      <Sidebar>
+        <SidebarHeader>
+          <div className="flex items-center gap-2">
+            <Logo />
+            <span className="font-bold font-headline text-lg">
+              Mindset Theater
+            </span>
+          </div>
+        </SidebarHeader>
+        <SidebarContent>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild isActive={isActive("/admin/dashboard")}>
+                <Link href="/admin/dashboard">
+                  <LayoutGrid />
+                  <span>Dashboard</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarContent>
+        <SidebarFooter>
+           <div className="flex items-center gap-3">
+              <Avatar className="bg-secondary text-2xl flex items-center justify-center">
+                  <span>👑</span>
+              </Avatar>
+              <div className="flex flex-col">
+                  <span className="font-semibold">{user.displayName || "Super Admin"}</span>
+                  <span className="text-xs text-muted-foreground">{user.email}</span>
+              </div>
+          </div>
+          <Button onClick={handleLogout} variant="ghost" className="justify-start gap-2">
+              <LogOut/>
+              <span>Logout</span>
+          </Button>
+        </SidebarFooter>
+      </Sidebar>
+      <SidebarInset>
+        <header className="flex items-center justify-between p-4 border-b bg-background sticky top-0 z-10 md:justify-end">
+           <SidebarTrigger className="md:hidden" />
+           <div className="flex items-center gap-4">
+              <p className="text-sm text-muted-foreground">Welcome back, Super Admin!</p>
+           </div>
+        </header>
+        <main className="p-4 sm:p-6 lg:p-8 flex-1">{children}</main>
+      </SidebarInset>
     </SidebarProvider>
   );
 }
+
+    

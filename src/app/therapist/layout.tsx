@@ -102,121 +102,121 @@ export default function TherapistLayout({
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen">
-        <Sidebar>
-          <SidebarHeader>
-            <div className="flex items-center gap-2">
-              <Logo />
-              <span className="font-bold font-headline text-lg">
-                Mindset Theater
-              </span>
-            </div>
-          </SidebarHeader>
-          <SidebarContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive("/therapist/dashboard")}>
-                  <Link href="/therapist/dashboard">
-                    <LayoutGrid />
-                    <span>Dashboard</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive("/therapist/quotes")}>
-                  <Link href="/therapist/quotes">
-                    <Quote />
-                    <span>Quotes</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive("/therapist/chats")}>
-                  <Link href="/therapist/chats">
-                    <MessageCircle />
-                    <span>Chats</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive("/therapist/booking")}>
-                  <Link href="/therapist/booking">
-                    <CalendarCheck />
-                    <span>Bookings</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive("/therapist/profile")}>
-                  <Link href="/therapist/profile">
-                    <User />
-                    <span>Profile</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarContent>
-          <SidebarFooter>
-             <div className="flex items-center gap-3">
-                <Avatar className="bg-secondary text-2xl flex items-center justify-center">
-                    {avatar}
-                </Avatar>
-                <div className="flex flex-col">
-                    <span className="font-semibold">{user.displayName || "Therapist"}</span>
-                    <span className="text-xs text-muted-foreground">{user.email}</span>
-                </div>
-            </div>
-            <Button onClick={handleLogout} variant="ghost" className="justify-start gap-2">
-                <LogOut/>
-                <span>Logout</span>
-            </Button>
-          </SidebarFooter>
-        </Sidebar>
-        <SidebarInset>
-          <header className="flex items-center justify-between p-4 border-b bg-background sticky top-0 z-10 md:justify-end">
-             <SidebarTrigger className="md:hidden" />
-             <div className="flex items-center gap-4">
-                 <Popover>
-                    <PopoverTrigger asChild>
-                         <Button variant="outline" size="icon" className="relative">
-                            <Bell />
-                            {unreadCount > 0 && (
-                                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-xs text-white">
-                                    {unreadCount}
-                                </span>
-                            )}
-                        </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-80 p-0">
-                       <div className="p-4 border-b">
-                            <h4 className="font-medium text-sm">Notifications</h4>
-                        </div>
-                        <ScrollArea className="h-96">
-                            {notifications.length > 0 ? (
-                                notifications.map(notif => (
-                                    <div key={notif.id} className="p-4 border-b hover:bg-secondary">
-                                        <Link href={notif.link} onClick={() => handleMarkAsRead(notif.id)}>
-                                            <p className="font-semibold text-sm">{notif.title}</p>
-                                            <p className="text-sm text-muted-foreground">{notif.message}</p>
-                                            <p className="text-xs text-muted-foreground mt-1">
-                                                {formatDistanceToNow(notif.createdAt, { addSuffix: true })}
-                                            </p>
-                                        </Link>
-                                         {!notif.isRead && <div className="absolute right-4 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full bg-primary" />}
-                                    </div>
-                                ))
-                            ) : (
-                                <p className="text-center text-sm text-muted-foreground p-8">No notifications yet.</p>
-                            )}
-                        </ScrollArea>
-                    </PopoverContent>
-                </Popover>
-                <p className="text-sm text-muted-foreground">Welcome back, {user.displayName || "Therapist"}!</p>
-             </div>
-          </header>
-          <main className="p-4 sm:p-6 lg:p-8 flex-1">{children}</main>
-        </SidebarInset>
-      </div>
+      <Sidebar>
+        <SidebarHeader>
+          <div className="flex items-center gap-2">
+            <Logo />
+            <span className="font-bold font-headline text-lg">
+              Mindset Theater
+            </span>
+          </div>
+        </SidebarHeader>
+        <SidebarContent>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild isActive={isActive("/therapist/dashboard")}>
+                <Link href="/therapist/dashboard">
+                  <LayoutGrid />
+                  <span>Dashboard</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild isActive={isActive("/therapist/quotes")}>
+                <Link href="/therapist/quotes">
+                  <Quote />
+                  <span>Quotes</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild isActive={isActive("/therapist/chats")}>
+                <Link href="/therapist/chats">
+                  <MessageCircle />
+                  <span>Chats</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild isActive={isActive("/therapist/booking")}>
+                <Link href="/therapist/booking">
+                  <CalendarCheck />
+                  <span>Bookings</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild isActive={isActive("/therapist/profile")}>
+                <Link href="/therapist/profile">
+                  <User />
+                  <span>Profile</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarContent>
+        <SidebarFooter>
+           <div className="flex items-center gap-3">
+              <Avatar className="bg-secondary text-2xl flex items-center justify-center">
+                  {avatar}
+              </Avatar>
+              <div className="flex flex-col">
+                  <span className="font-semibold">{user.displayName || "Therapist"}</span>
+                  <span className="text-xs text-muted-foreground">{user.email}</span>
+              </div>
+          </div>
+          <Button onClick={handleLogout} variant="ghost" className="justify-start gap-2">
+              <LogOut/>
+              <span>Logout</span>
+          </Button>
+        </SidebarFooter>
+      </Sidebar>
+      <SidebarInset>
+        <header className="flex items-center justify-between p-4 border-b bg-background sticky top-0 z-10 md:justify-end">
+           <SidebarTrigger className="md:hidden" />
+           <div className="flex items-center gap-4">
+               <Popover>
+                  <PopoverTrigger asChild>
+                       <Button variant="outline" size="icon" className="relative">
+                          <Bell />
+                          {unreadCount > 0 && (
+                              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-xs text-white">
+                                  {unreadCount}
+                              </span>
+                          )}
+                      </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-80 p-0">
+                     <div className="p-4 border-b">
+                          <h4 className="font-medium text-sm">Notifications</h4>
+                      </div>
+                      <ScrollArea className="h-96">
+                          {notifications.length > 0 ? (
+                              notifications.map(notif => (
+                                  <div key={notif.id} className="p-4 border-b hover:bg-secondary">
+                                      <Link href={notif.link} onClick={() => handleMarkAsRead(notif.id)}>
+                                          <p className="font-semibold text-sm">{notif.title}</p>
+                                          <p className="text-sm text-muted-foreground">{notif.message}</p>
+                                          <p className="text-xs text-muted-foreground mt-1">
+                                              {formatDistanceToNow(notif.createdAt, { addSuffix: true })}
+                                          </p>
+                                      </Link>
+                                       {!notif.isRead && <div className="absolute right-4 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full bg-primary" />}
+                                  </div>
+                              ))
+                          ) : (
+                              <p className="text-center text-sm text-muted-foreground p-8">No notifications yet.</p>
+                          )}
+                      </ScrollArea>
+                  </PopoverContent>
+              </Popover>
+              <p className="text-sm text-muted-foreground">Welcome back, {user.displayName || "Therapist"}!</p>
+           </div>
+        </header>
+        <main className="p-4 sm:p-6 lg:p-8 flex-1">{children}</main>
+      </SidebarInset>
     </SidebarProvider>
   );
 }
+
+    
