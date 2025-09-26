@@ -103,17 +103,18 @@ export default function ClientBookingPage() {
     }
   }, [user, allBookings, loadingBookings]);
 
-  const getConfirmedSlotsForTherapist = (therapistId: string, date: Date) => {
+  const getSlotsByStatus = (therapistId: string, date: Date, statuses: Array<Booking['status']>, clientId?: string) => {
     if (!date) return [];
     return allBookings
-      .filter(booking => 
-        booking.therapistId === therapistId &&
-        booking.status === 'Confirmed' &&
-        new Date(booking.date).toDateString() === date.toDateString()
-      )
+      .filter(booking => {
+        const isCorrectTherapist = booking.therapistId === therapistId;
+        const isCorrectDate = new Date(booking.date).toDateString() === date.toDateString();
+        const hasCorrectStatus = statuses.includes(booking.status);
+        const isCorrectClient = !clientId || booking.clientId === clientId;
+        return isCorrectTherapist && isCorrectDate && hasCorrectStatus && isCorrectClient;
+      })
       .map(booking => new Date(booking.date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }));
   };
-
 
   const getStatusVariant = (status: string) => {
     switch (status) {
@@ -187,12 +188,14 @@ export default function ClientBookingPage() {
     })
   }
 
-  const confirmedSlots = currentTherapist && selectedDate ? getConfirmedSlotsForTherapist(currentTherapist.id, selectedDate) : [];
+  const confirmedSlots = currentTherapist && selectedDate ? getSlotsByStatus(currentTherapist.id, selectedDate, ['Confirmed']) : [];
+  const myPendingSlots = currentTherapist && selectedDate && user ? getSlotsByStatus(currentTherapist.id, selectedDate, ['Pending'], user.uid) : [];
+
 
   const handleDateSelect = (date: Date | undefined) => {
     setSelectedDate(date);
     if(date && currentTherapist) {
-        const slotsForDate = getConfirmedSlotsForTherapist(currentTherapist.id, date);
+        const slotsForDate = getSlotsByStatus(currentTherapist.id, date, ['Confirmed']);
         const firstAvailable = timeSlots.find(slot => !slotsForDate.includes(slot));
         setSelectedTime(firstAvailable);
     } else {
@@ -293,10 +296,12 @@ export default function ClientBookingPage() {
                                         </SelectTrigger>
                                         <SelectContent>
                                             {timeSlots.map(time => {
-                                                const isTaken = confirmedSlots.includes(time);
+                                                const isConfirmed = confirmedSlots.includes(time);
+                                                const isMyPending = myPendingSlots.includes(time);
+                                                const isDisabled = isConfirmed || isMyPending;
                                                 return (
-                                                    <SelectItem key={time} value={time} disabled={isTaken}>
-                                                        {time} {isTaken && "(Booked)"}
+                                                    <SelectItem key={time} value={time} disabled={isDisabled}>
+                                                        {time} {isConfirmed && "(Booked)"} {isMyPending && "(Pending)"}
                                                     </SelectItem>
                                                 );
                                             })}
