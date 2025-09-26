@@ -9,7 +9,7 @@ export type User = {
   id: string; // Corresponds to Firebase Auth UID
   name: string;
   email: string;
-  role: 'client' | 'therapist';
+  role: 'client' | 'therapist' | 'admin';
   isOnline: boolean;
   avatar?: string;
   phone?: string;
@@ -77,5 +77,3 @@ export const quotes: Omit<Quote, 'id' | 'authorId' | 'authorName' | 'createdAt'>
     emoji: '👟', 
   },
 ];
-
-    

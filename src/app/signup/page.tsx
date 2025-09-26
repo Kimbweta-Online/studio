@@ -49,15 +49,18 @@ export default function SignupPage() {
       // Update Firebase Auth profile
       await updateProfile(user, { displayName: values.name });
 
+      // Determine role, checking for special admin email
+      const role = values.email === 'admin@gmail.com' ? 'admin' : values.role;
+      const avatar = role === 'admin' ? '👑' : (role === 'therapist' ? '🧑‍⚕️' : '😀');
+
       // Create user document in Firestore
       await setDoc(doc(db, "users", user.uid), {
         uid: user.uid,
         name: values.name,
         email: values.email,
-        role: values.role,
-        isOnline: true, // Set online status on creation
-        avatar: '😀', // Default avatar
-        // Add other fields therapists might need
+        role: role,
+        isOnline: true,
+        avatar: avatar,
         ...(values.role === "therapist" && {
             specialty: "Not Specified",
             bio: "",
@@ -69,7 +72,9 @@ export default function SignupPage() {
         description: "You have been successfully signed up.",
       });
 
-      if (values.role === "therapist") {
+      if (role === 'admin') {
+          router.push('/admin/dashboard');
+      } else if (role === "therapist") {
         router.push("/therapist/dashboard");
       } else {
         router.push("/client/dashboard");

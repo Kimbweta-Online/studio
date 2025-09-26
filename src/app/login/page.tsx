@@ -61,7 +61,9 @@ export default function LoginPage() {
         description: "Redirecting you to your dashboard.",
       });
       
-      if (userData.role === "therapist") {
+      if (userData.role === "admin") {
+          router.push("/admin/dashboard");
+      } else if (userData.role === "therapist") {
           router.push("/therapist/dashboard");
       } else {
           router.push("/client/dashboard");
