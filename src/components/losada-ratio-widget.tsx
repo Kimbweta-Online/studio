@@ -14,13 +14,6 @@ import { AlertCircle, TrendingUp, Sparkles, Lightbulb } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { ChatMessage } from '@/lib/data';
 
-type AiChatMessage = {
-    id: string;
-    question: string;
-    answer: string;
-    timestamp: any;
-}
-
 export function LosadaRatioWidget() {
     const { user } = useAuth();
     const [ratio, setRatio] = useState<number | null>(null);
@@ -104,18 +97,24 @@ export function LosadaRatioWidget() {
     }
 
     if (error || !hasMessages) {
-        return <Card>
+        return (
+          <Card>
             <CardHeader>
-                 <CardTitle className="font-headline flex items-center gap-3"><Sparkles className="text-primary" />Your Positivity Ratio</CardTitle>
-                 <CardDescription>Start chatting with a therapist to analyze your mindset.</CardDescription>
+              <CardTitle className="font-headline flex items-center gap-3">
+                <Sparkles className="text-primary" />
+                Your Positivity Ratio
+              </CardTitle>
+              <CardDescription>
+                Based on your recent therapist chats, reflecting your mindset.
+              </CardDescription>
             </CardHeader>
             <CardContent>
-                <div className="text-center text-muted-foreground py-6">
-                    <p>No therapist chat history found to analyze yet.</p>
-                     {error && <p className="text-xs text-destructive mt-2">{error}</p>}
-                </div>
+              <div className="text-center text-muted-foreground py-6">
+                <p>Start chatting with a therapist to analyze your mindset.</p>
+              </div>
             </CardContent>
-        </Card>
+          </Card>
+        );
     }
 
     return (
