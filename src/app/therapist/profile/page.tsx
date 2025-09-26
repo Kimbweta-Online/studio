@@ -5,8 +5,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/context/auth-context";
 import { db, auth } from "@/lib/firebase";
 import { doc, getDoc, updateDoc, collection, query, where, getDocs } from "firebase/firestore";
-import { updateProfile } from "firebase/auth";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { updateProfile, updatePassword } from "firebase/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -20,8 +19,22 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { Booking } from "@/lib/data";
 import { Loader2 } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+
 
 const avatarOptions = ['😀', '🧑‍⚕️', '🧠', '❤️', '🧘', '⭐', '💡', '🤝'];
+
+const passwordFormSchema = z.object({
+    password: z.string().min(6, "Password must be at least 6 characters."),
+    confirmPassword: z.string()
+}).refine(data => data.password === data.confirmPassword, {
+    message: "Passwords do not match.",
+    path: ["confirmPassword"],
+});
+
 
 export default function TherapistProfilePage() {
     const { toast } = useToast();
@@ -30,7 +43,13 @@ export default function TherapistProfilePage() {
     const [bookings, setBookings] = useState<Booking[]>([]);
     const [loading, setLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
+    const [isSavingPassword, setIsSavingPassword] = useState(false);
     const [selectedAvatar, setSelectedAvatar] = useState<string>('');
+
+    const passwordForm = useForm<z.infer<typeof passwordFormSchema>>({
+        resolver: zodResolver(passwordFormSchema),
+        defaultValues: { password: "", confirmPassword: "" },
+    });
 
     useEffect(() => {
         const fetchUserData = async () => {
@@ -104,6 +123,24 @@ export default function TherapistProfilePage() {
             setIsSaving(false);
         }
     };
+
+     const handleChangePassword = async (values: z.infer<typeof passwordFormSchema>) => {
+        if (!user) {
+            toast({ variant: "destructive", title: "Not Authenticated", description: "You must be logged in to change your password." });
+            return;
+        }
+        setIsSavingPassword(true);
+        try {
+            await updatePassword(user, values.password);
+            toast({ title: "Password Updated", description: "Your password has been changed successfully." });
+            passwordForm.reset();
+        } catch (error: any) {
+            console.error("Error changing password:", error);
+            toast({ variant: "destructive", title: "Update Failed", description: `Could not change your password: ${error.message}. You may need to sign out and sign back in.` });
+        } finally {
+            setIsSavingPassword(false);
+        }
+    }
     
     if (loading || !userData) {
       return (
@@ -131,8 +168,8 @@ export default function TherapistProfilePage() {
         <p className="text-muted-foreground">Manage your professional information and availability.</p>
       </div>
 
-       <div className="grid lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2">
+       <div className="grid lg:grid-cols-3 gap-8 items-start">
+            <div className="lg:col-span-2 space-y-8">
                 <Card>
                     <CardHeader>
                         <CardTitle className="font-headline">Professional Details</CardTitle>
@@ -185,6 +222,48 @@ export default function TherapistProfilePage() {
                       </form>
                     </CardContent>
                 </Card>
+                 <Card>
+                    <CardHeader>
+                        <CardTitle className="font-headline">Security</CardTitle>
+                        <CardDescription>Change your account password.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                       <Form {...passwordForm}>
+                           <form onSubmit={passwordForm.handleSubmit(handleChangePassword)} className="space-y-4 max-w-sm">
+                                <FormField
+                                    control={passwordForm.control}
+                                    name="password"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>New Password</FormLabel>
+                                            <FormControl>
+                                                <Input type="password" placeholder="••••••••" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={passwordForm.control}
+                                    name="confirmPassword"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Confirm New Password</FormLabel>
+                                            <FormControl>
+                                                <Input type="password" placeholder="••••••••" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <Button type="submit" disabled={isSavingPassword}>
+                                    {isSavingPassword && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    Change Password
+                                </Button>
+                           </form>
+                       </Form>
+                    </CardContent>
+                </Card>
             </div>
             <div className="lg:col-span-1">
                 <Card>
@@ -211,7 +290,6 @@ export default function TherapistProfilePage() {
                 </Card>
             </div>
        </div>
-
     </div>
   );
 }

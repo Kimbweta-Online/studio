@@ -78,7 +78,6 @@ export default function LoginPage() {
                   break;
               case 'auth/too-many-requests':
                   description = "Too many login attempts. Please try again later.";
-                  break;
               case 'auth/network-request-failed':
                   description = "Network error. Please check your connection and ensure Firebase emulators are running.";
                   break;
@@ -128,7 +127,12 @@ export default function LoginPage() {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                     <div className="flex items-center justify-between">
+                        <FormLabel>Password</FormLabel>
+                        <Link href="/forgot-password" passHref className="text-sm font-medium text-primary hover:underline">
+                            Forgot password?
+                        </Link>
+                    </div>
                     <FormControl>
                       <Input type="password" placeholder="••••••••" {...field} />
                     </FormControl>
