@@ -4,7 +4,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   SidebarProvider,
@@ -218,5 +218,3 @@ export default function TherapistLayout({
     </SidebarProvider>
   );
 }
-
-    
