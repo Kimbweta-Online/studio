@@ -19,6 +19,14 @@ import Link from "next/link";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+
 
 const generateTimeSlots = () => {
     const slots = [];
@@ -251,7 +259,7 @@ export default function ClientBookingPage() {
                     <DialogTrigger asChild>
                         <Button variant="outline"><CalendarDays className="mr-2 h-4 w-4" /> Book Now</Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-sm">
+                    <DialogContent className="max-w-sm sm:max-w-md">
                         <DialogHeader>
                         <DialogTitle className="font-headline">Schedule with {therapist.name}</DialogTitle>
                         <DialogDescription>Select a date, time, and duration for your session. (Mon-Sat, 8am-10pm)</DialogDescription>
@@ -276,42 +284,40 @@ export default function ClientBookingPage() {
                                     }}
                                 />
                             </div>
-                             <div>
-                                <Label className="text-sm font-medium">Time Slot</Label>
-                                <RadioGroup value={selectedTime} onValueChange={setSelectedTime} className="grid grid-cols-3 gap-2 mt-2">
-                                    {timeSlots.map(time => {
-                                        const isTaken = confirmedSlots.includes(time);
-                                        return (
-                                            <Label 
-                                                key={time} 
-                                                htmlFor={`time-${time}`} 
-                                                className={cn(
-                                                    "flex items-center space-x-2 rounded-md border p-2 justify-center hover:bg-accent cursor-pointer peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary",
-                                                    isTaken && "bg-destructive/20 text-muted-foreground cursor-not-allowed opacity-50"
-                                                )}
-                                            >
-                                                <RadioGroupItem value={time} id={`time-${time}`} className="sr-only peer" disabled={isTaken} />
-                                                <Clock className="h-4 w-4 text-muted-foreground" />
-                                                <span>{time}</span>
+                             <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <Label htmlFor="time-slot" className="text-sm font-medium">Time Slot</Label>
+                                    <Select value={selectedTime} onValueChange={setSelectedTime}>
+                                        <SelectTrigger id="time-slot" className="mt-2">
+                                            <SelectValue placeholder="Select a time" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {timeSlots.map(time => {
+                                                const isTaken = confirmedSlots.includes(time);
+                                                return (
+                                                    <SelectItem key={time} value={time} disabled={isTaken}>
+                                                        {time} {isTaken && "(Booked)"}
+                                                    </SelectItem>
+                                                );
+                                            })}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                 <div>
+                                    <Label className="text-sm font-medium">Duration</Label>
+                                    <RadioGroup value={selectedDuration} onValueChange={setSelectedDuration} className="grid grid-cols-2 gap-2 mt-2">
+                                        {durations.map(duration => (
+                                            <Label key={duration.value} htmlFor={`duration-${duration.value}`} className="flex flex-col items-center justify-center rounded-md border p-3 hover:bg-accent cursor-pointer peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                                                <RadioGroupItem value={duration.value} id={`duration-${duration.value}`} className="sr-only peer" />
+                                                <span className="font-semibold text-sm">{duration.label}</span>
+                                                <span className="text-xs text-muted-foreground">{duration.price.toLocaleString('en-US')} TZS</span>
                                             </Label>
-                                        );
-                                    })}
-                                </RadioGroup>
-                            </div>
-                             <div>
-                                <Label className="text-sm font-medium">Duration</Label>
-                                 <RadioGroup value={selectedDuration} onValueChange={setSelectedDuration} className="grid grid-cols-2 gap-2 mt-2">
-                                    {durations.map(duration => (
-                                        <Label key={duration.value} htmlFor={`duration-${duration.value}`} className="flex flex-col items-center justify-center rounded-md border p-3 hover:bg-accent cursor-pointer peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
-                                            <RadioGroupItem value={duration.value} id={`duration-${duration.value}`} className="sr-only peer" />
-                                            <span className="font-semibold">{duration.label}</span>
-                                            <span className="text-xs text-muted-foreground">{duration.price.toLocaleString('en-US')} TZS</span>
-                                        </Label>
-                                    ))}
-                                </RadioGroup>
+                                        ))}
+                                    </RadioGroup>
+                                </div>
                             </div>
                         </div>
-                        <Button onClick={() => handleBooking(therapist)} disabled={isScheduling || !selectedDate || !selectedTime || !selectedDuration}>
+                        <Button onClick={() => handleBooking(therapist)} disabled={isScheduling || !selectedDate || !selectedTime || !selectedDuration} className="w-full">
                           {isScheduling && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                           Confirm Booking
                         </Button>
@@ -385,5 +391,5 @@ export default function ClientBookingPage() {
       </section>
     </div>
   );
-}
 
+    
