@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useEffect, useState } from 'react';
@@ -6,24 +5,16 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import {
-  SidebarProvider,
-  Sidebar,
-  SidebarHeader,
-  SidebarContent,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarFooter,
-  SidebarTrigger,
-  SidebarInset,
-} from "@/components/ui/sidebar";
 import { Logo } from "@/components/logo";
-import { CalendarCheck, LayoutGrid, LogOut, MessageCircle, User, Quote } from "lucide-react";
+import { CalendarCheck, LayoutGrid, LogOut, MessageCircle, User, Quote, Bell } from "lucide-react";
 import { useAuth } from '@/context/auth-context';
 import { auth, db } from '@/lib/firebase';
 import { signOut } from 'firebase/auth';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import type { Notification } from '@/lib/data';
+import { Badge } from '@/components/ui/badge';
+
 
 export default function TherapistLayout({
   children,
@@ -34,6 +25,9 @@ export default function TherapistLayout({
   const router = useRouter();
   const { user, loading } = useAuth();
   const [avatar, setAvatar] = useState('🧑‍⚕️');
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+
   const isActive = (path: string) => pathname.startsWith(path);
   
   useEffect(() => {
@@ -55,8 +49,27 @@ export default function TherapistLayout({
             }
         };
         fetchUserData();
+
+        const notifsQuery = query(
+          collection(db, 'notifications'),
+          where('userId', '==', user.uid),
+          orderBy('createdAt', 'desc')
+        );
+        
+        const unsubscribe = onSnapshot(notifsQuery, (snapshot) => {
+          const notifs = snapshot.docs.map(d => ({id: d.id, ...d.data(), createdAt: d.data().createdAt.toDate() }) as Notification);
+          setNotifications(notifs);
+          setUnreadCount(notifs.filter(n => !n.isRead).length);
+        });
+
+        return () => unsubscribe();
     }
   }, [user, loading, router]);
+  
+  const handleMarkAsRead = async (notificationId: string) => {
+    const notifRef = doc(db, 'notifications', notificationId);
+    await updateDoc(notifRef, { isRead: true });
+  };
 
   const handleLogout = async () => {
     if (user) {
@@ -76,85 +89,81 @@ export default function TherapistLayout({
   }
 
   return (
-    <SidebarProvider>
-      <Sidebar>
-        <SidebarHeader>
-          <div className="flex items-center gap-2">
+     <div className="flex min-h-screen">
+      <aside className="w-64 flex-shrink-0 border-r bg-background flex flex-col p-4">
+        <div className="flex items-center gap-2 mb-8">
             <Logo />
             <span className="font-bold font-headline text-lg">
               Mindset Theater
             </span>
-          </div>
-        </SidebarHeader>
-        <SidebarContent>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={isActive("/therapist/dashboard")}>
-                <Link href="/therapist/dashboard">
-                  <LayoutGrid />
-                  <span>Dashboard</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={isActive("/therapist/quotes")}>
-                <Link href="/therapist/quotes">
-                  <Quote />
-                  <span>Quotes</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={isActive("/therapist/chats")}>
-                <Link href="/therapist/chats">
-                  <MessageCircle />
-                  <span>Chats</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={isActive("/therapist/booking")}>
-                <Link href="/therapist/booking">
-                  <CalendarCheck />
-                  <span>Bookings</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={isActive("/therapist/profile")}>
-                <Link href="/therapist/profile">
-                  <User />
-                  <span>Profile</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarContent>
-        <SidebarFooter>
+        </div>
+
+        <nav className="flex-1 space-y-2">
+            <Link href="/therapist/dashboard" className={`flex items-center gap-3 p-2 rounded-lg ${isActive("/therapist/dashboard") ? 'bg-accent text-accent-foreground' : 'hover:bg-accent'}`}>
+                <LayoutGrid /><span>Dashboard</span>
+            </Link>
+            <Link href="/therapist/quotes" className={`flex items-center gap-3 p-2 rounded-lg ${isActive("/therapist/quotes") ? 'bg-accent text-accent-foreground' : 'hover:bg-accent'}`}>
+                <Quote /><span>Quotes</span>
+            </Link>
+            <Link href="/therapist/chats" className={`flex items-center gap-3 p-2 rounded-lg ${isActive("/therapist/chats") ? 'bg-accent text-accent-foreground' : 'hover:bg-accent'}`}>
+                <MessageCircle /><span>Chats</span>
+            </Link>
+            <Link href="/therapist/booking" className={`flex items-center gap-3 p-2 rounded-lg ${isActive("/therapist/booking") ? 'bg-accent text-accent-foreground' : 'hover:bg-accent'}`}>
+                <CalendarCheck /><span>Bookings</span>
+            </Link>
+            <Link href="/therapist/profile" className={`flex items-center gap-3 p-2 rounded-lg ${isActive("/therapist/profile") ? 'bg-accent text-accent-foreground' : 'hover:bg-accent'}`}>
+                <User /><span>Profile</span>
+            </Link>
+        </nav>
+
+        <div className="mt-auto space-y-4">
            <div className="flex items-center gap-3">
               <Avatar className="bg-secondary text-2xl flex items-center justify-center">
                   {avatar}
               </Avatar>
-              <div className="flex flex-col">
-                  <span className="font-semibold">{user.displayName || "Therapist"}</span>
-                  <span className="text-xs text-muted-foreground">{user.email}</span>
+              <div className="flex flex-col truncate">
+                  <span className="font-semibold truncate">{user.displayName || "Therapist"}</span>
+                  <span className="text-xs text-muted-foreground truncate">{user.email}</span>
               </div>
           </div>
-          <Button onClick={handleLogout} variant="ghost" className="justify-start gap-2">
+          <Button onClick={handleLogout} variant="ghost" className="w-full justify-start gap-2">
               <LogOut/>
               <span>Logout</span>
           </Button>
-        </SidebarFooter>
-      </Sidebar>
-      <SidebarInset>
-        <header className="flex items-center justify-between p-4 border-b bg-background sticky top-0 z-10 md:justify-end">
-           <SidebarTrigger className="md:hidden" />
+        </div>
+      </aside>
+      
+      <div className="flex-1 flex flex-col">
+        <header className="flex items-center justify-end p-4 border-b bg-background sticky top-0 z-10 h-16">
            <div className="flex items-center gap-4">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="ghost" size="icon" className="relative">
+                    <Bell />
+                    {unreadCount > 0 && (
+                      <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 justify-center p-0">{unreadCount}</Badge>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80">
+                  <div className="font-semibold p-2">Notifications</div>
+                  <div className="space-y-2">
+                    {notifications.length > 0 ? notifications.map(n => (
+                      <div key={n.id} onClick={() => handleMarkAsRead(n.id)} className={`p-2 rounded-md ${n.isRead ? 'opacity-60' : 'bg-accent'}`}>
+                        <Link href={n.link}>
+                          <div className="font-bold text-sm">{n.title}</div>
+                          <p className="text-xs">{n.message}</p>
+                          <p className="text-xs text-muted-foreground mt-1">{n.createdAt.toLocaleDateString()}</p>
+                        </Link>
+                      </div>
+                    )) : <p className="text-sm text-muted-foreground p-4 text-center">No notifications yet.</p>}
+                  </div>
+                </PopoverContent>
+              </Popover>
               <p className="text-sm text-muted-foreground">Welcome back, {user.displayName || "Therapist"}!</p>
            </div>
         </header>
-        <main className="p-4 sm:p-6 lg:p-8 flex-1">{children}</main>
-      </SidebarInset>
-    </SidebarProvider>
+        <main className="p-4 sm:p-6 lg:p-8 flex-1 bg-secondary/50">{children}</main>
+      </div>
+    </div>
   );
-}

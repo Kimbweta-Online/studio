@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useEffect, useState } from 'react';
@@ -6,18 +5,6 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import {
-  SidebarProvider,
-  Sidebar,
-  SidebarHeader,
-  SidebarContent,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarFooter,
-  SidebarTrigger,
-  SidebarInset,
-} from "@/components/ui/sidebar";
 import { Logo } from "@/components/logo";
 import { LayoutGrid, LogOut } from "lucide-react";
 import { useAuth } from '@/context/auth-context';
@@ -75,53 +62,45 @@ export default function AdminLayout({
   }
 
   return (
-    <SidebarProvider>
-      <Sidebar>
-        <SidebarHeader>
-          <div className="flex items-center gap-2">
+    <div className="flex min-h-screen">
+      <aside className="w-64 flex-shrink-0 border-r bg-background flex flex-col p-4">
+        <div className="flex items-center gap-2 mb-8">
             <Logo />
             <span className="font-bold font-headline text-lg">
               Mindset Theater
             </span>
-          </div>
-        </SidebarHeader>
-        <SidebarContent>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={isActive("/admin/dashboard")}>
-                <Link href="/admin/dashboard">
-                  <LayoutGrid />
-                  <span>Dashboard</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarContent>
-        <SidebarFooter>
+        </div>
+
+        <nav className="flex-1 space-y-2">
+            <Link href="/admin/dashboard" className={`flex items-center gap-3 p-2 rounded-lg ${isActive("/admin/dashboard") ? 'bg-accent text-accent-foreground' : 'hover:bg-accent'}`}>
+                <LayoutGrid /><span>Dashboard</span>
+            </Link>
+        </nav>
+
+        <div className="mt-auto space-y-4">
            <div className="flex items-center gap-3">
               <Avatar className="bg-secondary text-2xl flex items-center justify-center">
                   <span>👑</span>
               </Avatar>
-              <div className="flex flex-col">
-                  <span className="font-semibold">{user.displayName || "Super Admin"}</span>
-                  <span className="text-xs text-muted-foreground">{user.email}</span>
+              <div className="flex flex-col truncate">
+                  <span className="font-semibold truncate">{user.displayName || "Super Admin"}</span>
+                  <span className="text-xs text-muted-foreground truncate">{user.email}</span>
               </div>
           </div>
-          <Button onClick={handleLogout} variant="ghost" className="justify-start gap-2">
+          <Button onClick={handleLogout} variant="ghost" className="w-full justify-start gap-2">
               <LogOut/>
               <span>Logout</span>
           </Button>
-        </SidebarFooter>
-      </Sidebar>
-      <SidebarInset>
-        <header className="flex items-center justify-between p-4 border-b bg-background sticky top-0 z-10 md:justify-end">
-           <SidebarTrigger className="md:hidden" />
+        </div>
+      </aside>
+      
+      <div className="flex-1 flex flex-col">
+        <header className="flex items-center justify-end p-4 border-b bg-background sticky top-0 z-10 h-16">
            <div className="flex items-center gap-4">
               <p className="text-sm text-muted-foreground">Welcome back, Super Admin!</p>
            </div>
         </header>
-        <main className="p-4 sm:p-6 lg:p-8 flex-1">{children}</main>
-      </SidebarInset>
-    </SidebarProvider>
+        <main className="p-4 sm:p-6 lg:p-8 flex-1 bg-secondary/50">{children}</main>
+      </div>
+    </div>
   );
-}
