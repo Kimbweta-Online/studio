@@ -20,6 +20,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { PlusCircle, Loader2, Edit, Trash2, QuoteIcon } from "lucide-react";
 
+export const dynamic = 'force-dynamic';
+
 type Quote = {
   id: string;
   title: string;
@@ -108,7 +110,7 @@ export default function TherapistQuotesPage() {
                 const quoteRef = doc(db, "quotes", editingQuote.id);
                 await updateDoc(quoteRef, values);
                 toast({ title: "Quote Updated", description: "Your quote has been successfully updated." });
-                setQuotes(quotes.map(q => q.id === editingQuote.id ? { ...q, ...values } : q));
+                setQuotes(quotes.map(q => q.id === editingQuote.id ? { ...q, ...values } as Quote : q));
             } else {
                 // Create new quote
                 const newQuoteData = {
@@ -120,7 +122,7 @@ export default function TherapistQuotesPage() {
                 const docRef = await addDoc(collection(db, "quotes"), newQuoteData);
                 // Note: 'createdAt' will be a server timestamp object. For instant UI update, we use a client-side date.
                 // a full solution would re-fetch or use the onSnapshot listener.
-                setQuotes([{ id: docRef.id, ...newQuoteData, createdAt: new Timestamp(Date.now()/1000, 0) }, ...quotes]);
+                setQuotes([{ id: docRef.id, ...newQuoteData, createdAt: new Timestamp(Date.now()/1000, 0) } as Quote, ...quotes]);
                 toast({ title: "Quote Shared", description: "Your motivational quote has been shared." });
             }
             setIsDialogOpen(false);
@@ -280,14 +282,10 @@ export default function TherapistQuotesPage() {
                     ))}
                 </div>
             ) : (
-                <Card className="flex flex-col items-center justify-center p-12 text-center text-muted-foreground border-dashed">
+                 <Card className="md:col-span-3 flex flex-col items-center justify-center p-12 text-center text-muted-foreground">
                     <QuoteIcon className="h-12 w-12 mb-4" />
-                    <h2 className="text-xl font-semibold mb-2">No Quotes Yet</h2>
-                    <p className="mb-4">You haven't shared any motivational quotes. Click the button below to add your first one!</p>
-                    <Button onClick={openDialogForCreate}>
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Add New Quote
-                    </Button>
+                    <p>You haven't shared any quotes yet.</p>
+                    <p className="text-sm">Click "Add New Quote" to share some inspiration.</p>
                 </Card>
             )}
         </div>
