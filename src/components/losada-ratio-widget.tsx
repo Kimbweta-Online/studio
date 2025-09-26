@@ -39,17 +39,12 @@ export function LosadaRatioWidget() {
             setLoading(true);
             setError(null);
             try {
-                // Fetch AI chat history
-                const aiChatsQuery = query(collection(db, 'ai_chats'), where('userId', '==', user.uid), orderBy('timestamp', 'desc'));
-                const aiChatsSnapshot = await getDocs(aiChatsQuery);
-                const userQuestions = aiChatsSnapshot.docs.map(d => (d.data() as AiChatMessage).question);
-                
                 // Fetch all therapist chats for the user
                 const therapistChatsQuery = query(collectionGroup(db, 'messages'), where('senderId', '==', user.uid));
                 const therapistChatsSnapshot = await getDocs(therapistChatsQuery);
                 const userTherapistMessages = therapistChatsSnapshot.docs.map(d => (d.data() as ChatMessage).text);
                 
-                const allMessages = [...userQuestions, ...userTherapistMessages];
+                const allMessages = [...userTherapistMessages];
 
                 if (allMessages.length === 0) {
                     setRatio(0);
@@ -120,11 +115,11 @@ export function LosadaRatioWidget() {
         return <Card>
             <CardHeader>
                  <CardTitle className="font-headline flex items-center gap-3"><Sparkles className="text-primary" />Your Positivity Ratio</CardTitle>
-                 <CardDescription>Start chatting with the AI or a therapist to analyze your mindset.</CardDescription>
+                 <CardDescription>Start chatting with a therapist to analyze your mindset.</CardDescription>
             </CardHeader>
             <CardContent>
                 <div className="text-center text-muted-foreground py-6">
-                    <p>No chat history found to analyze yet.</p>
+                    <p>No therapist chat history found to analyze yet.</p>
                 </div>
             </CardContent>
         </Card>
@@ -134,7 +129,7 @@ export function LosadaRatioWidget() {
         <Card>
             <CardHeader>
                 <CardTitle className="font-headline flex items-center gap-3"><TrendingUp className="text-primary" />Your Positivity Ratio</CardTitle>
-                <CardDescription>Based on your recent AI and therapist chats, reflecting your mindset.</CardDescription>
+                <CardDescription>Based on your recent therapist chats, reflecting your mindset.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
                 <div>
