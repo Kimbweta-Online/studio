@@ -85,7 +85,7 @@ export function LosadaRatioWidget() {
         if (ratio === Infinity || ratio >= 3) return { text: "Flourishing", color: "bg-green-500", description: "You're in a great space! Your interactions show a strong positive mindset." };
         if (ratio > 1) return { text: "Getting By", color: "bg-yellow-500", description: "You have more positive than negative interactions, which is a good foundation." };
         if (ratio > 0) return { text: "Languishing", color: "bg-orange-500", description: "Your negative interactions are outweighing the positive. Let's work on that." };
-        return { text: "Stuck", color: "bg-red-500", description: "It seems you're in a tough spot. Remember, it's okay to ask for help." };
+        return { text: "Stuck", color: "bg-red-500", description: "It's okay to feel this way. Remember to be kind to yourself." };
     };
     
     const { text: ratioText, color: ratioColor, description: ratioDescription } = getRatioInfo();
@@ -101,17 +101,7 @@ export function LosadaRatioWidget() {
         </Card>
     }
 
-    if (error) {
-        return <Card className="border-destructive">
-             <CardHeader className="flex-row items-center gap-4">
-                <AlertCircle className="h-6 w-6 text-destructive" />
-                <CardTitle className="text-destructive">Analysis Error</CardTitle>
-             </CardHeader>
-             <CardContent><p className="text-muted-foreground">{error}</p></CardContent>
-        </Card>
-    }
-    
-    if (sentimentCounts?.positive === 0 && sentimentCounts?.negative === 0) {
+    if (error || (sentimentCounts?.positive === 0 && sentimentCounts?.negative === 0 && sentimentCounts?.neutral === 0)) {
         return <Card>
             <CardHeader>
                  <CardTitle className="font-headline flex items-center gap-3"><Sparkles className="text-primary" />Your Positivity Ratio</CardTitle>
@@ -120,6 +110,7 @@ export function LosadaRatioWidget() {
             <CardContent>
                 <div className="text-center text-muted-foreground py-6">
                     <p>No therapist chat history found to analyze yet.</p>
+                     {error && <p className="text-xs text-destructive mt-2">{error}</p>}
                 </div>
             </CardContent>
         </Card>
