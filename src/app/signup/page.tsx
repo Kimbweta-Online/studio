@@ -64,6 +64,7 @@ export default function SignupPage() {
         ...(values.role === "therapist" && {
             specialty: "Not Specified",
             bio: "",
+            registrationStatus: 'Pending'
         })
       });
 

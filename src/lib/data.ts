@@ -16,6 +16,7 @@ export type User = {
   // Therapist-specific fields
   specialty?: string;
   bio?: string;
+  registrationStatus?: 'Pending' | 'Approved' | 'Denied';
 }
 
 export type Therapist = User & {

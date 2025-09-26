@@ -52,9 +52,31 @@ export default function LoginPage() {
         return;
       }
       
-      await updateDoc(userDocRef, { isOnline: true });
-
       const userData = userDoc.data();
+      
+      // Check therapist registration status
+      if (userData.role === 'therapist') {
+          if (userData.registrationStatus === 'Pending') {
+              toast({
+                  variant: "default",
+                  title: "Registration Pending",
+                  description: "Your registration is still pending approval. You'll be able to log in once approved.",
+              });
+              await auth.signOut();
+              return;
+          }
+          if (userData.registrationStatus === 'Denied') {
+               toast({
+                  variant: "destructive",
+                  title: "Registration Denied",
+                  description: "Your registration has been denied by an administrator.",
+              });
+              await auth.signOut();
+              return;
+          }
+      }
+
+      await updateDoc(userDocRef, { isOnline: true });
       
       toast({
         title: "Login Successful",

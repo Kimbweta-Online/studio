@@ -3,18 +3,27 @@
 
 import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, doc, updateDoc } from "firebase/firestore";
 import type { User, Booking } from "@/lib/data";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Users, Calendar, CheckCircle, Clock, MessageSquare } from "lucide-react";
+import { Users, Calendar, CheckCircle, Clock, MessageSquare, UserCheck } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { useToast } from "@/hooks/use-toast";
 
 export default function AdminDashboardPage() {
+  const { toast } = useToast();
   const [users, setUsers] = useState<User[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,11 +56,40 @@ export default function AdminDashboardPage() {
     fetchData();
   }, []);
 
+  const handleStatusChange = async (userId: string, newStatus: User['registrationStatus']) => {
+        try {
+            const userRef = doc(db, "users", userId);
+            await updateDoc(userRef, { registrationStatus: newStatus });
+            setUsers(prevUsers => 
+                prevUsers.map(u => u.id === userId ? { ...u, registrationStatus: newStatus } : u)
+            );
+            toast({
+                title: "Status Updated",
+                description: `Therapist status has been changed to ${newStatus}.`,
+            });
+        } catch (error) {
+             console.error("Error updating therapist status:", error);
+            toast({
+                variant: "destructive",
+                title: "Update Failed",
+                description: "Could not update the therapist status.",
+            });
+        }
+    };
+
   const clients = users.filter(u => u.role === 'client');
   const therapists = users.filter(u => u.role === 'therapist');
 
   const getStatusVariant = (status: boolean | undefined) => {
     return status ? 'default' : 'secondary';
+  };
+
+  const getRegistrationStatusVariant = (status: string | undefined) => {
+    switch (status) {
+      case 'Approved': return 'default';
+      case 'Denied': return 'destructive';
+      default: return 'outline';
+    }
   };
   
   const getRoleVariant = (role: string) => {
@@ -113,6 +151,71 @@ export default function AdminDashboardPage() {
 
         <Card>
             <CardHeader>
+                <CardTitle className="font-headline flex items-center gap-2"><UserCheck /> Therapist Approvals</CardTitle>
+            </CardHeader>
+            <CardContent>
+                 <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Therapist</TableHead>
+                            <TableHead>Email</TableHead>
+                            <TableHead>Specialty</TableHead>
+                            <TableHead className="text-center">Approval Status</TableHead>
+                            <TableHead className="text-right">Action</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {loading ? (
+                             Array.from({ length: 3 }).map((_, i) => (
+                                <TableRow key={i}>
+                                    <TableCell><div className="flex items-center gap-3"><Skeleton className="h-10 w-10 rounded-full" /><Skeleton className="h-4 w-24" /></div></TableCell>
+                                    <TableCell><Skeleton className="h-4 w-40" /></TableCell>
+                                    <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                                    <TableCell><Skeleton className="h-6 w-24 mx-auto" /></TableCell>
+                                    <TableCell><Skeleton className="h-9 w-28 ml-auto" /></TableCell>
+                                </TableRow>
+                            ))
+                        ) : (
+                            therapists.map(therapist => (
+                                <TableRow key={therapist.id} className="hover:bg-muted/50">
+                                     <TableCell>
+                                        <div className="flex items-center gap-3">
+                                            <Avatar className="h-10 w-10 text-2xl flex items-center justify-center bg-secondary">
+                                                <span>{therapist.avatar}</span>
+                                            </Avatar>
+                                            <span className="font-medium">{therapist.name}</span>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>{therapist.email}</TableCell>
+                                    <TableCell>{therapist.specialty}</TableCell>
+                                    <TableCell className="text-center">
+                                        <Badge variant={getRegistrationStatusVariant(therapist.registrationStatus)}>{therapist.registrationStatus || 'Pending'}</Badge>
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                         <Select 
+                                            defaultValue={therapist.registrationStatus}
+                                            onValueChange={(newStatus: User['registrationStatus']) => handleStatusChange(therapist.id, newStatus)}
+                                        >
+                                            <SelectTrigger className="w-[120px] ml-auto">
+                                                <SelectValue placeholder="Update" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="Pending">Pending</SelectItem>
+                                                <SelectItem value="Approved">Approved</SelectItem>
+                                                <SelectItem value="Denied">Denied</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </TableCell>
+                                </TableRow>
+                            ))
+                        )}
+                    </TableBody>
+                </Table>
+            </CardContent>
+        </Card>
+
+        <Card>
+            <CardHeader>
                 <CardTitle className="font-headline">All Users</CardTitle>
             </CardHeader>
             <CardContent>
@@ -138,7 +241,7 @@ export default function AdminDashboardPage() {
                                 </TableRow>
                             ))
                         ) : (
-                            users.map(user => (
+                            users.filter(u => u.role !== 'therapist').map(user => (
                                 <TableRow key={user.id} className="hover:bg-muted/50">
                                     <TableCell>
                                       <Link href={`/admin/users/${user.id}`}>
