@@ -73,13 +73,14 @@ export default function LoginPage() {
           switch (error.code) {
               case 'auth/user-not-found':
               case 'auth/wrong-password':
+              case 'auth/invalid-credential':
                   description = "Invalid email or password.";
                   break;
               case 'auth/too-many-requests':
                   description = "Too many login attempts. Please try again later.";
                   break;
-              case 'firestore/permission-denied':
-                  description = "There was a problem accessing your user data. Please contact support.";
+              case 'auth/network-request-failed':
+                  description = "Network error. Please check your connection and ensure Firebase emulators are running.";
                   break;
               default:
                   description = error.message;
