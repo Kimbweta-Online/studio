@@ -251,7 +251,7 @@ export default function ClientBookingPage() {
                     <DialogTrigger asChild>
                         <Button variant="outline"><CalendarDays className="mr-2 h-4 w-4" /> Book Now</Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-md">
+                    <DialogContent className="max-w-sm">
                         <DialogHeader>
                         <DialogTitle className="font-headline">Schedule with {therapist.name}</DialogTitle>
                         <DialogDescription>Select a date, time, and duration for your session. (Mon-Sat, 8am-10pm)</DialogDescription>
@@ -268,22 +268,12 @@ export default function ClientBookingPage() {
                                         date.getDay() === 0 // Disable Sundays
                                     }
                                     modifiers={{ booked: bookedDays }}
-                                    modifiersStyles={{ booked: { textDecoration: 'line-through' } }}
-                                     components={{
-                                        Day: ({ date, ...props }) => {
-                                            const isBooked = bookedDays.some(
-                                                (bookedDate) => new Date(bookedDate).toDateString() === date.toDateString()
-                                            );
-                                            return (
-                                                <div className="relative">
-                                                <span {...props.buttonProps} className={cn(props.className, 'day-picker-day')}>
-                                                    {date.getDate()}
-                                                </span>
-                                                {isBooked && <Dot className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 text-primary" />}
-                                                </div>
-                                            );
-                                        },
-                                     }}
+                                     modifiersStyles={{
+                                        booked: { 
+                                            color: 'hsl(var(--destructive))',
+                                            textDecoration: 'line-through'
+                                        }
+                                    }}
                                 />
                             </div>
                              <div>
@@ -297,7 +287,7 @@ export default function ClientBookingPage() {
                                                 htmlFor={`time-${time}`} 
                                                 className={cn(
                                                     "flex items-center space-x-2 rounded-md border p-2 justify-center hover:bg-accent cursor-pointer peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary",
-                                                    isTaken && "bg-blue-100 dark:bg-blue-900/50 cursor-not-allowed opacity-50"
+                                                    isTaken && "bg-destructive/20 text-muted-foreground cursor-not-allowed opacity-50"
                                                 )}
                                             >
                                                 <RadioGroupItem value={time} id={`time-${time}`} className="sr-only peer" disabled={isTaken} />
@@ -397,5 +387,3 @@ export default function ClientBookingPage() {
   );
 }
 
-
-    
