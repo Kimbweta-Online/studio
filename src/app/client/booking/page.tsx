@@ -159,27 +159,6 @@ export default function ClientBookingPage() {
         
         await setDoc(newBookingRef, newBooking);
         
-        // Create notifications
-        const notificationsRef = collection(db, 'notifications');
-        // Notification for therapist
-        await addDoc(notificationsRef, {
-            userId: therapist.id,
-            title: 'New Booking Request',
-            message: `You have a new booking request from ${clientData.name}.`,
-            link: '/therapist/booking',
-            isRead: false,
-            createdAt: serverTimestamp(),
-        });
-         // Notification for client
-        await addDoc(notificationsRef, {
-            userId: user.uid,
-            title: 'Booking Request Sent',
-            message: `Your booking request to ${therapist.name} is pending.`,
-            link: '/client/booking',
-            isRead: false,
-            createdAt: serverTimestamp(),
-        });
-
         const bookingWithId = { ...newBooking, id: newBookingRef.id, date: finalDate };
         setAllBookings(prev => [...prev, bookingWithId]);
         setMyBookings(prev => [...prev, bookingWithId]);
@@ -418,4 +397,5 @@ export default function ClientBookingPage() {
     </div>
   );
 
+    
     

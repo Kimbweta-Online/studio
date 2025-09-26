@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useEffect, useState } from 'react';
@@ -6,14 +7,11 @@ import { usePathname, useRouter } from "next/navigation";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/logo";
-import { CalendarCheck, LayoutGrid, LogOut, MessageCircle, User, Quote, Bell } from "lucide-react";
+import { CalendarCheck, LayoutGrid, LogOut, MessageCircle, User, Quote } from "lucide-react";
 import { useAuth } from '@/context/auth-context';
 import { auth, db } from '@/lib/firebase';
 import { signOut } from 'firebase/auth';
-import { doc, getDoc, updateDoc, collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import type { Notification } from '@/lib/data';
-import { Badge } from '@/components/ui/badge';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 
 
 export default function TherapistLayout({
@@ -25,8 +23,6 @@ export default function TherapistLayout({
   const router = useRouter();
   const { user, loading } = useAuth();
   const [avatar, setAvatar] = useState('🧑‍⚕️');
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
 
   const isActive = (path: string) => pathname.startsWith(path);
   
@@ -49,28 +45,9 @@ export default function TherapistLayout({
             }
         };
         fetchUserData();
-
-        const notifsQuery = query(
-          collection(db, 'notifications'),
-          where('userId', '==', user.uid),
-          orderBy('createdAt', 'desc')
-        );
-        
-        const unsubscribe = onSnapshot(notifsQuery, (snapshot) => {
-          const notifs = snapshot.docs.map(d => ({id: d.id, ...d.data(), createdAt: d.data().createdAt.toDate() }) as Notification);
-          setNotifications(notifs);
-          setUnreadCount(notifs.filter(n => !n.isRead).length);
-        });
-
-        return () => unsubscribe();
     }
   }, [user, loading, router]);
   
-  const handleMarkAsRead = async (notificationId: string) => {
-    const notifRef = doc(db, 'notifications', notificationId);
-    await updateDoc(notifRef, { isRead: true });
-  };
-
   const handleLogout = async () => {
     if (user) {
         const userDocRef = doc(db, "users", user.uid);
@@ -136,30 +113,6 @@ export default function TherapistLayout({
       <div className="flex-1 flex flex-col">
         <header className="flex items-center justify-end p-4 border-b bg-background sticky top-0 z-10 h-16">
            <div className="flex items-center gap-4">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="ghost" size="icon" className="relative">
-                    <Bell />
-                    {unreadCount > 0 && (
-                      <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 justify-center p-0">{unreadCount}</Badge>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-80">
-                  <div className="font-semibold p-2">Notifications</div>
-                  <div className="space-y-2">
-                    {notifications.length > 0 ? notifications.map(n => (
-                      <div key={n.id} onClick={() => handleMarkAsRead(n.id)} className={`p-2 rounded-md ${n.isRead ? 'opacity-60' : 'bg-accent'}`}>
-                        <Link href={n.link}>
-                          <div className="font-bold text-sm">{n.title}</div>
-                          <p className="text-xs">{n.message}</p>
-                          <p className="text-xs text-muted-foreground mt-1">{n.createdAt.toLocaleDateString()}</p>
-                        </Link>
-                      </div>
-                    )) : <p className="text-sm text-muted-foreground p-4 text-center">No notifications yet.</p>}
-                  </div>
-                </PopoverContent>
-              </Popover>
               <p className="text-sm text-muted-foreground">Welcome back, {user.displayName || "Therapist"}!</p>
            </div>
         </header>
@@ -167,3 +120,5 @@ export default function TherapistLayout({
       </div>
     </div>
   );
+}
+    
