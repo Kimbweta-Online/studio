@@ -21,14 +21,15 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-if (process.env.NODE_ENV === 'development') {
-    // Point to the emulators running on localhost.
-    // Make sure to update the ports if you have them configured differently in firebase.json
+// Check if we are in a development environment and not server-side rendering
+if (typeof window !== "undefined" && window.location.hostname === "localhost") {
+    console.log("Development environment detected, connecting to emulators.");
     try {
+        // Point to the emulators running on localhost.
         connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });
         connectFirestoreEmulator(db, "127.0.0.1", 8080);
         connectStorageEmulator(storage, "127.0.0.1", 9199);
-        console.log("Connected to local Firebase emulators.");
+        console.log("Successfully connected to local Firebase emulators.");
     } catch (error) {
         console.error("Error connecting to Firebase emulators:", error);
     }
