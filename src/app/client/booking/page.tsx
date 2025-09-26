@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Calendar } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarDays, Phone, Trash2, Loader2, MessageCircle, Clock } from "lucide-react';
+import { CalendarDays, Phone, Trash2, Loader2, MessageCircle, Clock } from 'lucide-react';
 import type { Booking, Therapist } from "@/lib/data";
 import { useAuth } from "@/context/auth-context";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -119,7 +119,7 @@ export default function ClientBookingPage() {
         
         await setDoc(newBookingRef, newBooking);
         
-        setBookings(prev => [...prev, { ...newBooking, id: newBookingRef.id }]);
+        setBookings(prev => [...prev, { ...newBooking, id: newBookingRef.id, date: finalDate }]);
         
         toast({
             title: "Booking Request Sent",
@@ -300,5 +300,3 @@ export default function ClientBookingPage() {
     </div>
   );
 }
-
-    
