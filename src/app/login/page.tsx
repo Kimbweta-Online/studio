@@ -74,7 +74,7 @@ export default function LoginPage() {
               case 'auth/user-not-found':
               case 'auth/wrong-password':
               case 'auth/invalid-credential':
-                  description = "Invalid email or password.";
+                  description = "Invalid email or password. If you're using the emulators, remember to sign up for a new account each session.";
                   break;
               case 'auth/too-many-requests':
                   description = "Too many login attempts. Please try again later.";
