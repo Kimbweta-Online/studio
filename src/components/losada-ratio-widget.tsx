@@ -28,6 +28,7 @@ export function LosadaRatioWidget() {
     const [suggestions, setSuggestions] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [hasMessages, setHasMessages] = useState(false);
 
     useEffect(() => {
         if (!user) {
@@ -47,11 +48,12 @@ export function LosadaRatioWidget() {
                 const allMessages = [...userTherapistMessages];
 
                 if (allMessages.length === 0) {
-                    setRatio(0);
-                    setSentimentCounts({ positive: 0, negative: 0, neutral: 0 });
+                    setHasMessages(false);
                     setLoading(false);
                     return;
                 }
+                
+                setHasMessages(true);
 
                 // Analyze sentiment
                 const sentimentResult = await analyzeChatSentiment({ messages: allMessages });
@@ -101,7 +103,7 @@ export function LosadaRatioWidget() {
         </Card>
     }
 
-    if (error || (sentimentCounts?.positive === 0 && sentimentCounts?.negative === 0 && sentimentCounts?.neutral === 0)) {
+    if (error || !hasMessages) {
         return <Card>
             <CardHeader>
                  <CardTitle className="font-headline flex items-center gap-3"><Sparkles className="text-primary" />Your Positivity Ratio</CardTitle>
