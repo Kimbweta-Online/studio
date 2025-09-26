@@ -19,15 +19,12 @@ type StaticQuote = {
 
 export default function ClientDashboard() {
   const [quotes, setQuotes] = useState<StaticQuote[]>([]);
-  const [loadingQuotes, setLoadingQuotes] = useState(true);
 
   useEffect(() => {
     // Use the static quotes from the data file.
     // We shuffle them to show a different set on each page load.
-    setLoadingQuotes(true);
     const shuffledQuotes = [...staticQuotes].sort(() => 0.5 - Math.random());
     setQuotes(shuffledQuotes.slice(0, 4));
-    setLoadingQuotes(false);
   }, []);
 
   return (
