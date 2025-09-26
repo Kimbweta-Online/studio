@@ -18,8 +18,19 @@ import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { cn } from "@/lib/utils";
 
-const timeSlots = ["09:00", "11:00", "14:00", "16:00"];
+const generateTimeSlots = () => {
+    const slots = [];
+    // from 8 AM (Saa mbili asubuhi) to 9 PM (Saa tatu usiku) to allow for 1-hour sessions before 10 PM
+    for (let i = 8; i <= 21; i++) { 
+        slots.push(`${i.toString().padStart(2, '0')}:00`);
+    }
+    return slots;
+};
+
+const timeSlots = generateTimeSlots();
+
 const durations = [
     { value: "45", label: "45 min", price: 5000 },
     { value: "60", label: "1 hour", price: 7000 },
@@ -30,58 +41,71 @@ export default function ClientBookingPage() {
   const { user } = useAuth();
   
   const [therapists, setTherapists] = useState<Therapist[]>([]);
-  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [allBookings, setAllBookings] = useState<Booking[]>([]);
+  const [myBookings, setMyBookings] = useState<Booking[]>([]);
   const [loadingTherapists, setLoadingTherapists] = useState(true);
   const [loadingBookings, setLoadingBookings] = useState(true);
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [selectedTime, setSelectedTime] = useState<string | undefined>();
   const [selectedDuration, setSelectedDuration] = useState<string | undefined>();
   const [isScheduling, setIsScheduling] = useState(false);
+  const [currentTherapist, setCurrentTherapist] = useState<Therapist | null>(null);
 
-  useEffect(() => {
-    setSelectedDate(new Date());
-    const fetchTherapists = async () => {
+   useEffect(() => {
+    const fetchTherapistsAndBookings = async () => {
       setLoadingTherapists(true);
+      setLoadingBookings(true);
+
       try {
-        const therapistsQuery = query(collection(db, "users"), where("role", "==", "therapist"));
+        // Fetch all therapists
+        const therapistsQuery = query(collection(db, "users"), where("role", "==", "therapist"), where("registrationStatus", "==", "Approved"));
         const therapistsSnapshot = await getDocs(therapistsQuery);
         const therapistsList = therapistsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Therapist));
         setTherapists(therapistsList);
+
+        // Fetch all bookings for availability checks
+        const allBookingsSnapshot = await getDocs(collection(db, "bookings"));
+        const allBookingsList = allBookingsSnapshot.docs.map(bookingDoc => {
+            const bookingData = bookingDoc.data();
+            return { id: bookingDoc.id, ...bookingData, date: (bookingData.date as any).toDate() } as Booking;
+        });
+        setAllBookings(allBookingsList);
+
       } catch (error) {
-        console.error("Error fetching therapists: ", error);
-        toast({ variant: "destructive", title: "Error", description: "Failed to load therapist data." });
+        console.error("Error fetching data: ", error);
+        toast({ variant: "destructive", title: "Error", description: "Failed to load initial data." });
       } finally {
         setLoadingTherapists(false);
+        setLoadingBookings(false);
       }
     };
-    fetchTherapists();
+    fetchTherapistsAndBookings();
   }, [toast]);
   
   useEffect(() => {
-    const fetchBookings = async () => {
+    // Separate effect for fetching user-specific bookings
+    const fetchMyBookings = async () => {
        if (user) {
-          setLoadingBookings(true);
-          try {
-            const bookingsQuery = query(collection(db, "bookings"), where("clientId", "==", user.uid));
-            const bookingsSnapshot = await getDocs(bookingsQuery);
-            const bookingsList = await Promise.all(bookingsSnapshot.docs.map(async (bookingDoc) => {
-              const bookingData = bookingDoc.data();
-              const date = (bookingData.date as any).toDate(); 
-              return { id: bookingDoc.id, ...bookingData, date } as Booking;
-            }));
-            setBookings(bookingsList);
-          } catch(error) {
-            console.error("Error fetching bookings: ", error);
-            toast({ variant: "destructive", title: "Error", description: "Failed to load booking data." });
-          } finally {
-            setLoadingBookings(false);
-          }
-        } else {
-            setLoadingBookings(false);
+          const userBookings = allBookings.filter(b => b.clientId === user.uid);
+          setMyBookings(userBookings);
         }
     }
-    fetchBookings();
-  }, [user, toast]);
+    if (!loadingBookings) {
+        fetchMyBookings();
+    }
+  }, [user, allBookings, loadingBookings]);
+
+  const getConfirmedSlotsForTherapist = (therapistId: string, date: Date) => {
+    if (!date) return [];
+    return allBookings
+      .filter(booking => 
+        booking.therapistId === therapistId &&
+        booking.status === 'Confirmed' &&
+        new Date(booking.date).toDateString() === date.toDateString()
+      )
+      .map(booking => new Date(booking.date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }));
+  };
+
 
   const getStatusVariant = (status: string) => {
     switch (status) {
@@ -125,7 +149,10 @@ export default function ClientBookingPage() {
         
         await setDoc(newBookingRef, newBooking);
         
-        setBookings(prev => [...prev, { ...newBooking, id: newBookingRef.id, date: finalDate }]);
+        // Add to both allBookings and myBookings state for immediate UI update
+        const bookingWithId = { ...newBooking, id: newBookingRef.id, date: finalDate };
+        setAllBookings(prev => [...prev, bookingWithId]);
+        setMyBookings(prev => [...prev, bookingWithId]);
         
         toast({
             title: "Booking Request Sent",
@@ -138,17 +165,21 @@ export default function ClientBookingPage() {
         setIsScheduling(false);
         setSelectedTime(undefined);
         setSelectedDuration(undefined);
+        setCurrentTherapist(null);
         document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
     }
   }
   
   const handleCancel = (bookingId: string) => {
+    // This is a placeholder. In a real app, you would update the booking status to 'Cancelled' in Firestore.
     toast({
         variant: "destructive",
         title: "Booking Cancelled",
         description: `Your booking (ID: ${bookingId}) has been cancelled.`,
     })
   }
+
+  const confirmedSlots = currentTherapist && selectedDate ? getConfirmedSlotsForTherapist(currentTherapist.id, selectedDate) : [];
 
   return (
     <div className="space-y-8">
@@ -191,14 +222,22 @@ export default function ClientBookingPage() {
                             <MessageCircle className="mr-2 h-4 w-4" /> Chat Now
                         </Link>
                     </Button>
-                    <Dialog>
+                    <Dialog onOpenChange={(open) => {
+                        if (open) {
+                            setCurrentTherapist(therapist);
+                        } else {
+                            setCurrentTherapist(null);
+                            setSelectedTime(undefined);
+                            setSelectedDuration(undefined);
+                        }
+                    }}>
                     <DialogTrigger asChild>
                         <Button variant="outline"><CalendarDays className="mr-2 h-4 w-4" /> Book Now</Button>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-[425px]">
+                    <DialogContent className="sm:max-w-md">
                         <DialogHeader>
                         <DialogTitle className="font-headline">Schedule with {therapist.name}</DialogTitle>
-                        <DialogDescription>Select a date, time, and duration for your session.</DialogDescription>
+                        <DialogDescription>Select a date, time, and duration for your session. (Mon-Sat, 8am-10pm)</DialogDescription>
                         </DialogHeader>
                         <div className="grid gap-4 py-4">
                             <div className="flex justify-center">
@@ -207,19 +246,32 @@ export default function ClientBookingPage() {
                                     selected={selectedDate}
                                     onSelect={setSelectedDate}
                                     className="rounded-md border"
-                                    disabled={(date) => date < new Date(new Date().setDate(new Date().getDate() - 1))}
+                                    disabled={(date) => 
+                                        date < new Date(new Date().setDate(new Date().getDate() - 1)) || 
+                                        date.getDay() === 0 // Disable Sundays
+                                    }
                                 />
                             </div>
                              <div>
                                 <Label className="text-sm font-medium">Time Slot</Label>
-                                <RadioGroup value={selectedTime} onValueChange={setSelectedTime} className="grid grid-cols-2 gap-2 mt-2">
-                                    {timeSlots.map(time => (
-                                        <Label key={time} htmlFor={`time-${time}`} className="flex items-center space-x-2 rounded-md border p-3 hover:bg-accent cursor-pointer peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
-                                            <RadioGroupItem value={time} id={`time-${time}`} className="sr-only peer" />
-                                            <Clock className="h-4 w-4 text-muted-foreground" />
-                                            <span>{time}</span>
-                                        </Label>
-                                    ))}
+                                <RadioGroup value={selectedTime} onValueChange={setSelectedTime} className="grid grid-cols-3 gap-2 mt-2">
+                                    {timeSlots.map(time => {
+                                        const isTaken = confirmedSlots.includes(time);
+                                        return (
+                                            <Label 
+                                                key={time} 
+                                                htmlFor={`time-${time}`} 
+                                                className={cn(
+                                                    "flex items-center space-x-2 rounded-md border p-2 justify-center hover:bg-accent cursor-pointer peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary",
+                                                    isTaken && "bg-blue-100 dark:bg-blue-900/50 cursor-not-allowed opacity-50"
+                                                )}
+                                            >
+                                                <RadioGroupItem value={time} id={`time-${time}`} className="sr-only peer" disabled={isTaken} />
+                                                <Clock className="h-4 w-4 text-muted-foreground" />
+                                                <span>{time}</span>
+                                            </Label>
+                                        );
+                                    })}
                                 </RadioGroup>
                             </div>
                              <div>
@@ -268,7 +320,7 @@ export default function ClientBookingPage() {
                      </div>
                 </Card>
              ))
-          ) : bookings.length > 0 ? bookings.map(booking => {
+          ) : myBookings.length > 0 ? myBookings.map(booking => {
             const therapist = therapists.find(t => t.id === booking.therapistId);
             return (
               <Card key={booking.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 gap-4">
@@ -282,7 +334,7 @@ export default function ClientBookingPage() {
                             {new Date(booking.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} at {new Date(booking.date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                             {booking.duration && ` (${booking.duration} min)`}
                         </p>
-                        {booking.price && (
+                        {booking.price != null && (
                             <p className="text-sm font-bold text-primary">{booking.price.toLocaleString('en-US')} TZS</p>
                         )}
                     </div>
