@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Calendar } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarDays, Phone, Trash2, Loader2, MessageCircle, Clock } from 'lucide-react';
+import { CalendarDays, Phone, Trash2, Loader2, MessageCircle, Clock, Dot } from 'lucide-react';
 import type { Booking, Therapist } from "@/lib/data";
 import { useAuth } from "@/context/auth-context";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -181,6 +181,23 @@ export default function ClientBookingPage() {
 
   const confirmedSlots = currentTherapist && selectedDate ? getConfirmedSlotsForTherapist(currentTherapist.id, selectedDate) : [];
 
+  const handleDateSelect = (date: Date | undefined) => {
+    setSelectedDate(date);
+    if(date && currentTherapist) {
+        const slotsForDate = getConfirmedSlotsForTherapist(currentTherapist.id, date);
+        const firstAvailable = timeSlots.find(slot => !slotsForDate.includes(slot));
+        setSelectedTime(firstAvailable);
+    } else {
+        setSelectedTime(undefined);
+    }
+  };
+
+  const bookedDays = currentTherapist 
+    ? allBookings
+        .filter(b => b.therapistId === currentTherapist.id && b.status === 'Confirmed')
+        .map(b => b.date)
+    : [];
+
   return (
     <div className="space-y-8">
       <div>
@@ -234,7 +251,7 @@ export default function ClientBookingPage() {
                     <DialogTrigger asChild>
                         <Button variant="outline"><CalendarDays className="mr-2 h-4 w-4" /> Book Now</Button>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-md">
+                    <DialogContent className="max-w-md">
                         <DialogHeader>
                         <DialogTitle className="font-headline">Schedule with {therapist.name}</DialogTitle>
                         <DialogDescription>Select a date, time, and duration for your session. (Mon-Sat, 8am-10pm)</DialogDescription>
@@ -244,12 +261,29 @@ export default function ClientBookingPage() {
                                 <Calendar
                                     mode="single"
                                     selected={selectedDate}
-                                    onSelect={setSelectedDate}
+                                    onSelect={handleDateSelect}
                                     className="rounded-md border"
                                     disabled={(date) => 
                                         date < new Date(new Date().setDate(new Date().getDate() - 1)) || 
                                         date.getDay() === 0 // Disable Sundays
                                     }
+                                    modifiers={{ booked: bookedDays }}
+                                    modifiersStyles={{ booked: { textDecoration: 'line-through' } }}
+                                     components={{
+                                        Day: ({ date, ...props }) => {
+                                            const isBooked = bookedDays.some(
+                                                (bookedDate) => new Date(bookedDate).toDateString() === date.toDateString()
+                                            );
+                                            return (
+                                                <div className="relative">
+                                                <span {...props.buttonProps} className={cn(props.className, 'day-picker-day')}>
+                                                    {date.getDate()}
+                                                </span>
+                                                {isBooked && <Dot className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 text-primary" />}
+                                                </div>
+                                            );
+                                        },
+                                     }}
                                 />
                             </div>
                              <div>
@@ -362,3 +396,6 @@ export default function ClientBookingPage() {
     </div>
   );
 }
+
+
+    
