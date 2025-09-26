@@ -40,6 +40,7 @@ export type Booking = {
   clientName: string;
   date: Date; // Firestore Timestamps will be converted to this
   status: 'Pending' | 'Confirmed' | 'Completed' | 'Cancelled';
+  duration?: number;
 };
 
 export type ChatMessage = {
@@ -76,3 +77,5 @@ export const quotes: Omit<Quote, 'id' | 'authorId' | 'authorName' | 'createdAt'>
     emoji: '👟', 
   },
 ];
+
+    

@@ -2,9 +2,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { db, auth } from "@/lib/firebase";
-import { collection, query, where, getDocs, doc, setDoc, serverTimestamp, getDoc } from "firebase/firestore";
-import type { User as FirebaseUser } from "firebase/auth";
+import { db } from "@/lib/firebase";
+import { collection, query, where, getDocs, doc, setDoc, getDoc } from "firebase/firestore";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,11 +11,16 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Calendar } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarDays, Phone, Trash2, Loader2, MessageCircle } from "lucide-react";
+import { CalendarDays, Phone, Trash2, Loader2, MessageCircle, Clock } from "lucide-react';
 import type { Booking, Therapist } from "@/lib/data";
 import { useAuth } from "@/context/auth-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+
+const timeSlots = ["09:00", "11:00", "14:00", "16:00"];
+const durations = ["45", "60"];
 
 export default function ClientBookingPage() {
   const { toast } = useToast();
@@ -27,6 +31,8 @@ export default function ClientBookingPage() {
   const [loadingTherapists, setLoadingTherapists] = useState(true);
   const [loadingBookings, setLoadingBookings] = useState(true);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+  const [selectedTime, setSelectedTime] = useState<string | undefined>();
+  const [selectedDuration, setSelectedDuration] = useState<string | undefined>();
   const [isScheduling, setIsScheduling] = useState(false);
 
   useEffect(() => {
@@ -84,8 +90,8 @@ export default function ClientBookingPage() {
   };
   
   const handleBooking = async (therapist: Therapist) => {
-    if (!user || !selectedDate) {
-        toast({ variant: "destructive", title: "Error", description: "You must be logged in and select a date." });
+    if (!user || !selectedDate || !selectedTime || !selectedDuration) {
+        toast({ variant: "destructive", title: "Error", description: "Please select a date, time, and duration." });
         return;
     }
     setIsScheduling(true);
@@ -98,12 +104,17 @@ export default function ClientBookingPage() {
             throw new Error("Client user document not found!");
         }
 
+        const [hours, minutes] = selectedTime.split(':').map(Number);
+        const finalDate = new Date(selectedDate);
+        finalDate.setHours(hours, minutes, 0, 0);
+
         const newBooking: Omit<Booking, 'id'> = {
             therapistId: therapist.id,
             clientId: user.uid,
             clientName: clientDoc.data().name || "Unknown Client",
-            date: selectedDate,
+            date: finalDate,
             status: 'Pending',
+            duration: parseInt(selectedDuration),
         };
         
         await setDoc(newBookingRef, newBooking);
@@ -119,14 +130,13 @@ export default function ClientBookingPage() {
          toast({ variant: "destructive", title: "Booking Failed", description: "There was an error scheduling your session." });
     } finally {
         setIsScheduling(false);
-        // This closes the dialog, you might want to handle this differently
+        setSelectedTime(undefined);
+        setSelectedDuration(undefined);
         document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
     }
   }
   
   const handleCancel = (bookingId: string) => {
-    // In a real app, you would update the document in Firestore to have 'Cancelled' status
-    // For now, we'll just show the toast.
     toast({
         variant: "destructive",
         title: "Booking Cancelled",
@@ -179,20 +189,46 @@ export default function ClientBookingPage() {
                     <DialogTrigger asChild>
                         <Button variant="outline"><CalendarDays className="mr-2 h-4 w-4" /> Book Now</Button>
                     </DialogTrigger>
-                    <DialogContent>
+                    <DialogContent className="sm:max-w-[425px]">
                         <DialogHeader>
                         <DialogTitle className="font-headline">Schedule with {therapist.name}</DialogTitle>
-                        <DialogDescription>Select a date for your session.</DialogDescription>
+                        <DialogDescription>Select a date, time, and duration for your session.</DialogDescription>
                         </DialogHeader>
-                        <div className="flex justify-center py-4">
-                        <Calendar
-                            mode="single"
-                            selected={selectedDate}
-                            onSelect={setSelectedDate}
-                            className="rounded-md border"
-                            />
+                        <div className="grid gap-4 py-4">
+                            <div className="flex justify-center">
+                                <Calendar
+                                    mode="single"
+                                    selected={selectedDate}
+                                    onSelect={setSelectedDate}
+                                    className="rounded-md border"
+                                    disabled={(date) => date < new Date(new Date().setDate(new Date().getDate() - 1))}
+                                />
+                            </div>
+                             <div>
+                                <Label className="text-sm font-medium">Time Slot</Label>
+                                <RadioGroup value={selectedTime} onValueChange={setSelectedTime} className="grid grid-cols-2 gap-2 mt-2">
+                                    {timeSlots.map(time => (
+                                        <Label key={time} htmlFor={`time-${time}`} className="flex items-center space-x-2 rounded-md border p-3 hover:bg-accent cursor-pointer peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                                            <RadioGroupItem value={time} id={`time-${time}`} className="sr-only peer" />
+                                            <Clock className="h-4 w-4 text-muted-foreground" />
+                                            <span>{time}</span>
+                                        </Label>
+                                    ))}
+                                </RadioGroup>
+                            </div>
+                             <div>
+                                <Label className="text-sm font-medium">Duration</Label>
+                                 <RadioGroup value={selectedDuration} onValueChange={setSelectedDuration} className="grid grid-cols-2 gap-2 mt-2">
+                                    {durations.map(duration => (
+                                        <Label key={duration} htmlFor={`duration-${duration}`} className="flex items-center justify-center rounded-md border p-3 hover:bg-accent cursor-pointer peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                                            <RadioGroupItem value={duration} id={`duration-${duration}`} className="sr-only peer" />
+                                            <span>{duration} min</span>
+                                        </Label>
+                                    ))}
+                                </RadioGroup>
+                            </div>
                         </div>
-                        <Button onClick={() => handleBooking(therapist)} disabled={isScheduling}>
+                        <Button onClick={() => handleBooking(therapist)} disabled={isScheduling || !selectedDate || !selectedTime || !selectedDuration}>
                           {isScheduling && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                           Confirm Booking
                         </Button>
@@ -235,7 +271,10 @@ export default function ClientBookingPage() {
                     </Avatar>
                     <div>
                         <p className="font-semibold">Session with {therapist?.name}</p>
-                        <p className="text-sm text-muted-foreground">{new Date(booking.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} at {new Date(booking.date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</p>
+                        <p className="text-sm text-muted-foreground">
+                            {new Date(booking.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} at {new Date(booking.date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                            {booking.duration && ` (${booking.duration} min)`}
+                        </p>
                     </div>
                 </div>
                 <div className="flex items-center gap-2 self-end sm:self-center">
@@ -261,3 +300,5 @@ export default function ClientBookingPage() {
     </div>
   );
 }
+
+    

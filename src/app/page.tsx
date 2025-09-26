@@ -124,18 +124,20 @@ export default function Home() {
           <p className="max-w-2xl mx-auto text-lg md:text-xl text-muted-foreground mb-8">
             {t('subheadline')}
           </p>
-          <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
-            <Button asChild size="lg">
-              <Link href="/signup">{t('getClient')}</Link>
-            </Button>
+          <div className="flex flex-col items-center gap-4">
+            <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
+              <Button asChild size="lg">
+                <Link href="/signup">{t('getClient')}</Link>
+              </Button>
+              <Button asChild size="lg" variant="secondary">
+                <Link href="/signup">{t('getTherapist')}</Link>
+              </Button>
+            </div>
             <Button asChild size="lg" variant="outline">
               <Link href="/how-to-use">
                 <Info className="mr-2" />
                 {t('howToUse')}
               </Link>
-            </Button>
-            <Button asChild size="lg" variant="secondary">
-              <Link href="/signup">{t('getTherapist')}</Link>
             </Button>
           </div>
         </section>
@@ -283,3 +285,5 @@ export default function Home() {
     </div>
   );
 }
+
+    

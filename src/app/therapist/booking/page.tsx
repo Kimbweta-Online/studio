@@ -114,6 +114,7 @@ export default function TherapistBookingPage() {
                         <TableRow>
                         <TableHead>Client</TableHead>
                         <TableHead>Date & Time</TableHead>
+                        <TableHead>Duration</TableHead>
                         <TableHead className="text-center">Status</TableHead>
                         <TableHead className="text-right">Action</TableHead>
                         </TableRow>
@@ -124,6 +125,7 @@ export default function TherapistBookingPage() {
                                 <TableRow key={i}>
                                     <TableCell><div className="flex items-center gap-3"><Skeleton className="h-10 w-10 rounded-full" /><Skeleton className="h-4 w-24" /></div></TableCell>
                                     <TableCell><Skeleton className="h-4 w-40" /></TableCell>
+                                    <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                                     <TableCell className="text-center"><Skeleton className="h-6 w-20 mx-auto" /></TableCell>
                                     <TableCell className="text-right"><Skeleton className="h-10 w-[120px] ml-auto" /></TableCell>
                                 </TableRow>
@@ -141,6 +143,9 @@ export default function TherapistBookingPage() {
                                     </TableCell>
                                     <TableCell>
                                         {booking.date.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}
+                                    </TableCell>
+                                     <TableCell>
+                                        {booking.duration ? `${booking.duration} min` : 'N/A'}
                                     </TableCell>
                                     <TableCell className="text-center">
                                         <Badge variant={getStatusVariant(booking.status)}>{booking.status}</Badge>
@@ -165,7 +170,7 @@ export default function TherapistBookingPage() {
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={4} className="h-24 text-center">
+                                <TableCell colSpan={5} className="h-24 text-center">
                                     No bookings found.
                                 </TableCell>
                             </TableRow>
@@ -177,3 +182,5 @@ export default function TherapistBookingPage() {
         </div>
       );
 }
+
+    
