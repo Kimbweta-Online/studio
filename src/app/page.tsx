@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowRight, Bot, Calendar, User, Stethoscope, FileText, Shield, Handshake } from 'lucide-react';
+import { ArrowRight, Bot, Calendar, User, Stethoscope, FileText, Shield, Handshake, Info } from 'lucide-react';
 import { Logo } from '@/components/logo';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { LanguageToggle } from '@/components/language-toggle';
@@ -17,6 +17,7 @@ const translations: Translations = {
     subheadline: "Mindset Theater offers AI-powered support and seamless connections with professional therapists to guide you on your path to mental wellness.",
     getClient: "Get Started as a Client",
     getTherapist: "Join as a Therapist",
+    howToUse: "How to Use The System",
     supportiveSpace: "A Supportive Space for Everyone",
     supportiveSpaceDesc: "Whether you're seeking support or providing it, our platform is designed for you.",
     forClients: "For Clients",
@@ -38,7 +39,11 @@ const translations: Translations = {
     howItWorksStep3Desc: "Engage in secure chats, attend sessions, and access motivational content.",
     legal: "Legal & Information",
     privacyPolicy: "Privacy Policy",
+    privacyPolicyDesc: "Your privacy is important to us. Our Privacy Policy explains how we collect, use, and protect your personal information.",
+    readPolicy: "Read Policy",
     terms: "Terms & Conditions",
+    termsDesc: "By using Mindset Theater, you agree to our terms and conditions. Please review them carefully.",
+    readTerms: "Read Terms",
     copyright: "© {year} Mindset Theater. All rights reserved.",
     developer: "Developed by Goodluck Stanley",
     login: "Login",
@@ -50,6 +55,7 @@ const translations: Translations = {
     subheadline: "Jukwaa la Mindset linatoa msaada unaoendeshwa na AI na uhusiano rahisi na wataalamu wa tiba ili kukuongoza kwenye njia yako ya ustawi wa akili.",
     getClient: "Anza kama Mteja",
     getTherapist: "Jiunge kama Mtaalamu",
+    howToUse: "Jinsi ya Kutumia Mfumo",
     supportiveSpace: "Nafasi ya Msaada kwa Kila Mtu",
     supportiveSpaceDesc: "Iwe unatafuta msaada au unatoa, jukwaa letu limeundwa kwa ajili yako.",
     forClients: "Kwa Wateja",
@@ -71,7 +77,11 @@ const translations: Translations = {
     howItWorksStep3Desc: "Shiriki katika mazungumzo salama, hudhuria vikao, na pata maudhui ya kuhamasisha.",
     legal: "Sheria na Taarifa",
     privacyPolicy: "Sera ya Faragha",
+    privacyPolicyDesc: "Faragha yako ni muhimu kwetu. Sera yetu ya Faragha inaeleza jinsi tunavyokusanya, kutumia, na kulinda taarifa zako za kibinafsi.",
+    readPolicy: "Soma Sera",
     terms: "Vigezo na Masharti",
+    termsDesc: "Kwa kutumia Jukwaa la Mindset, unakubali vigezo na masharti yetu. Tafadhali yapitie kwa makini.",
+    readTerms: "Soma Vigezo",
     copyright: "© {year} Jukwaa la Mindset. Haki zote zimehifadhiwa.",
     developer: "Imetengenezwa na Goodluck Stanley",
     login: "Ingia",
@@ -114,11 +124,17 @@ export default function Home() {
           <p className="max-w-2xl mx-auto text-lg md:text-xl text-muted-foreground mb-8">
             {t('subheadline')}
           </p>
-          <div className="flex justify-center gap-4">
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
             <Button asChild size="lg">
               <Link href="/signup">{t('getClient')}</Link>
             </Button>
             <Button asChild size="lg" variant="outline">
+              <Link href="/how-to-use">
+                <Info className="mr-2" />
+                {t('howToUse')}
+              </Link>
+            </Button>
+            <Button asChild size="lg" variant="secondary">
               <Link href="/signup">{t('getTherapist')}</Link>
             </Button>
           </div>
@@ -234,8 +250,8 @@ export default function Home() {
                            <CardTitle className="font-headline">{t('privacyPolicy')}</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <p className="text-muted-foreground text-sm mb-4">Your privacy is important to us. Our Privacy Policy explains how we collect, use, and protect your personal information.</p>
-                            <Button variant="outline" asChild><Link href="#">Read Policy</Link></Button>
+                            <p className="text-muted-foreground text-sm mb-4">{t('privacyPolicyDesc')}</p>
+                            <Button variant="outline" asChild><Link href="/privacy-policy">{t('readPolicy')}</Link></Button>
                         </CardContent>
                     </Card>
                      <Card>
@@ -244,8 +260,8 @@ export default function Home() {
                            <CardTitle className="font-headline">{t('terms')}</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <p className="text-muted-foreground text-sm mb-4">By using Mindset Theater, you agree to our terms and conditions. Please review them carefully.</p>
-                            <Button variant="outline" asChild><Link href="#">Read Terms</Link></Button>
+                            <p className="text-muted-foreground text-sm mb-4">{t('termsDesc')}</p>
+                            <Button variant="outline" asChild><Link href="/terms-and-conditions">{t('readTerms')}</Link></Button>
                         </CardContent>
                     </Card>
                 </div>
