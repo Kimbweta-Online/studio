@@ -2,39 +2,11 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Users Collection
-    // - Anyone can view user profiles (for therapist lists).
-    // - You can only create or update your own user document.
-    match /users/{userId} {
-      allow read: if request.auth != null;
-      allow create, update: if request.auth.uid == userId;
-    }
-
-    // Quotes Collection
-    // - Any authenticated user can read quotes.
-    // - Any authenticated user can create a quote (assumed to be therapists by app logic).
-    match /quotes/{quoteId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null;
-    }
-
-    // Bookings Collection
-    // - You can read/write bookings if you are the client or the therapist.
-    match /bookings/{bookingId} {
-      allow read, create: if request.auth != null && (request.auth.uid == resource.data.clientId || request.auth.uid == resource.data.therapistId);
-      allow update: if request.auth != null && request.auth.uid == resource.data.therapistId;
-    }
-    
-    // Chats Collection
-    // - You can list/read/write to chats you are a participant in.
-    match /chats/{chatId} {
-      allow read, write: if request.auth != null && request.auth.uid in resource.data.participants;
-      
-      match /messages/{messageId} {
-        allow read, create: if request.auth != null && request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
-        allow update: if request.auth != null && request.auth.uid == resource.data.senderId;
-      }
+    // Allow read/write access to all users under any conditions
+    // Warning: **NEVER** use this rule set in production; it allows
+    // anyone to overwrite your entire database.
+    match /{document=**} {
+      allow read, write: if true;
     }
   }
 }
