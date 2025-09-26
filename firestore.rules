@@ -1,50 +1,39 @@
-
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper function to check if the user is the owner of a document
-    function isOwner(userId) {
-      return request.auth.uid == userId;
-    }
-
-    // Users can be read by any authenticated user, but only updated by the owner.
+    // Users Collection
+    // - Anyone can view user profiles (for therapist lists).
+    // - You can only create or update your own user document.
     match /users/{userId} {
       allow read: if request.auth != null;
-      allow update: if isOwner(userId);
-      // Deny create and delete for this simplified ruleset
-      allow create, delete: if false;
+      allow create, update: if request.auth.uid == userId;
     }
 
-    // Quotes can be read by anyone, but created/updated only by authenticated users (therapists).
+    // Quotes Collection
+    // - Any authenticated user can read quotes.
+    // - Any authenticated user can create a quote (assumed to be therapists by app logic).
     match /quotes/{quoteId} {
-      allow read: if true;
-      allow create, update: if request.auth != null;
-       // Deny delete
-      allow delete: if false;
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
     }
 
-    // Bookings can be read if the user is the client or the therapist.
-    // Bookings can be created by any authenticated user (client).
-    // Bookings can be updated by the therapist involved.
+    // Bookings Collection
+    // - You can read/write bookings if you are the client or the therapist.
     match /bookings/{bookingId} {
-      allow read: if request.auth != null && (request.auth.uid == resource.data.clientId || request.auth.uid == resource.data.therapistId);
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.clientId;
+      allow read, create: if request.auth != null && (request.auth.uid == resource.data.clientId || request.auth.uid == resource.data.therapistId);
       allow update: if request.auth != null && request.auth.uid == resource.data.therapistId;
-       // Deny delete
-      allow delete: if false;
     }
-
-    // Chats collection and its subcollections (messages)
+    
+    // Chats Collection
+    // - You can list/read/write to chats you are a participant in.
     match /chats/{chatId} {
-      // Allow read/write to the chat document if the user is a participant
       allow read, write: if request.auth != null && request.auth.uid in resource.data.participants;
-
-      // Messages subcollection
+      
       match /messages/{messageId} {
-        // Allow read/write if the user is a participant in the parent chat document
-        allow read, write: if request.auth != null && request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
+        allow read, create: if request.auth != null && request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
+        allow update: if request.auth != null && request.auth.uid == resource.data.senderId;
       }
     }
   }
