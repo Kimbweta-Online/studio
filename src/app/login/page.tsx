@@ -78,6 +78,7 @@ export default function LoginPage() {
                   break;
               case 'auth/too-many-requests':
                   description = "Too many login attempts. Please try again later.";
+                  break;
               case 'auth/network-request-failed':
                   description = "Network error. Please check your connection and ensure Firebase emulators are running.";
                   break;
