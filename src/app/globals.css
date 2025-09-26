@@ -80,6 +80,28 @@
 }
 
 @layer utilities {
+    .secure-chat-screenshot {
+      position: relative;
+    }
+    .secure-chat-screenshot::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: hsl(var(--background));
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+
+    @media (min-width: 768px) {
+        .secure-chat-screenshot:not(:hover)::after {
+            opacity: 1;
+        }
+    }
+
     .secure-chat {
         position: relative;
         -webkit-user-select: none; /* Safari */
