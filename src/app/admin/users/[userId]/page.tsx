@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Avatar } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, Bot, Calendar, MessageCircle, User as UserIcon } from 'lucide-react';
+import { ArrowLeft, Bot, Calendar, MessageCircle, Paperclip, User as UserIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
@@ -21,6 +21,14 @@ type ChatWithTherapist = {
   messages: ChatMessage[];
 };
 
+type AiChatMessage = {
+    id: string;
+    question: string;
+    answer: string;
+    hasPhoto: boolean;
+    timestamp: any;
+}
+
 export default function UserDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -29,7 +37,7 @@ export default function UserDetailPage() {
 
   const [user, setUser] = useState<User | null>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
-  const [aiChat, setAiChat] = useState<any[]>([]); // Using 'any' as AI chat structure is not strictly defined yet
+  const [aiChat, setAiChat] = useState<AiChatMessage[]>([]);
   const [therapistChats, setTherapistChats] = useState<ChatWithTherapist[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -58,10 +66,11 @@ export default function UserDetailPage() {
         const bookingsList = bookingsSnapshot.docs.map(d => ({ id: d.id, ...d.data(), date: (d.data().date as any).toDate() } as Booking));
         setBookings(bookingsList);
         
-        // This is a placeholder for AI chat history fetching.
-        // In a real app, you'd fetch this from wherever you store AI conversations.
-        // For now, we'll leave it empty.
-        setAiChat([]);
+        // Fetch AI chat history
+        const aiChatsQuery = query(collection(db, 'ai_chats'), where('userId', '==', userId), orderBy('timestamp', 'desc'));
+        const aiChatsSnapshot = await getDocs(aiChatsQuery);
+        const aiChatsList = aiChatsSnapshot.docs.map(d => ({ id: d.id, ...d.data() } as AiChatMessage));
+        setAiChat(aiChatsList);
 
         // Fetch therapist chats
         const chatsQuery = query(collection(db, 'chats'), where('participants', 'array-contains', userId));
@@ -181,9 +190,41 @@ export default function UserDetailPage() {
                 <CardHeader>
                     <CardTitle className="font-headline flex items-center gap-2"><Bot className="h-5 w-5"/>AI Chat History</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4 max-h-96 overflow-y-auto">
-                    {/* This is where AI chat history would be rendered */}
-                    <p className="text-sm text-muted-foreground text-center py-8">AI chat history view is not yet implemented.</p>
+                <CardContent className="space-y-4 max-h-[40rem] overflow-y-auto">
+                    {aiChat.length > 0 ? aiChat.map(chat => (
+                        <div key={chat.id} className="p-4 rounded-lg bg-muted/50">
+                            <div className="flex items-start gap-3">
+                                <Avatar className="h-8 w-8 text-xl flex items-center justify-center bg-secondary">
+                                    <span>{user.avatar}</span>
+                                </Avatar>
+                                <div className="flex-1">
+                                    <p className="font-semibold text-sm">Question</p>
+                                    <p className="text-sm text-muted-foreground">{chat.question}</p>
+                                    {chat.hasPhoto && (
+                                        <div className="text-xs text-blue-500 flex items-center gap-1 mt-1">
+                                            <Paperclip className="h-3 w-3" />
+                                            <span>Photo was attached</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                            <Separator className="my-3" />
+                             <div className="flex items-start gap-3">
+                                <Avatar className="h-8 w-8 text-xl flex items-center justify-center bg-primary/20">
+                                    <Bot className="text-primary"/>
+                                </Avatar>
+                                <div className="flex-1">
+                                    <p className="font-semibold text-sm">AI Answer</p>
+                                    <p className="text-sm text-muted-foreground prose prose-sm max-w-none">{chat.answer}</p>
+                                </div>
+                            </div>
+                             <p className="text-xs text-muted-foreground text-right mt-2">
+                                {chat.timestamp ? new Date(chat.timestamp.toDate()).toLocaleString() : ''}
+                            </p>
+                        </div>
+                    )) : (
+                        <p className="text-sm text-muted-foreground text-center py-8">No AI chat history found for this user.</p>
+                    )}
                 </CardContent>
              </Card>
 

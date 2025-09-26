@@ -14,6 +14,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Bot, Loader2, Send, Smile, Paperclip, X } from "lucide-react";
 import { Skeleton } from "./ui/skeleton";
+import { useAuth } from "@/context/auth-context";
+import { db } from "@/lib/firebase";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 
 const formSchema = z.object({
   question: z.string().min(10, {
@@ -29,6 +32,7 @@ export function AiChatForm() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -59,6 +63,14 @@ export function AiChatForm() {
 
 
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
+    if (!user) {
+        toast({
+            variant: "destructive",
+            title: "Not authenticated",
+            description: "You need to be logged in to chat with the AI.",
+        });
+        return;
+    }
     setIsLoading(true);
     setAiResponse(null);
 
@@ -79,6 +91,16 @@ export function AiChatForm() {
         photoDataUri: photoDataUri,
       });
       setAiResponse(result.answer);
+
+      // Save conversation to Firestore
+      await addDoc(collection(db, "ai_chats"), {
+        userId: user.uid,
+        question: data.question,
+        answer: result.answer,
+        hasPhoto: !!photoDataUri,
+        timestamp: serverTimestamp(),
+      });
+
     } catch (error) {
       console.error("Error generating support:", error);
       toast({
