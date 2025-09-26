@@ -41,6 +41,7 @@ export type Booking = {
   date: Date; // Firestore Timestamps will be converted to this
   status: 'Pending' | 'Confirmed' | 'Completed' | 'Cancelled';
   duration?: number;
+  price?: number;
 };
 
 export type ChatMessage = {

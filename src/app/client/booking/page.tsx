@@ -20,7 +20,10 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 const timeSlots = ["09:00", "11:00", "14:00", "16:00"];
-const durations = ["45", "60"];
+const durations = [
+    { value: "45", label: "45 min", price: 5000 },
+    { value: "60", label: "1 hour", price: 7000 },
+];
 
 export default function ClientBookingPage() {
   const { toast } = useToast();
@@ -108,13 +111,16 @@ export default function ClientBookingPage() {
         const finalDate = new Date(selectedDate);
         finalDate.setHours(hours, minutes, 0, 0);
 
+        const durationInfo = durations.find(d => d.value === selectedDuration);
+
         const newBooking: Omit<Booking, 'id'> = {
             therapistId: therapist.id,
             clientId: user.uid,
             clientName: clientDoc.data().name || "Unknown Client",
             date: finalDate,
             status: 'Pending',
-            duration: parseInt(selectedDuration),
+            duration: durationInfo ? parseInt(durationInfo.value) : 0,
+            price: durationInfo ? durationInfo.price : 0,
         };
         
         await setDoc(newBookingRef, newBooking);
@@ -220,9 +226,10 @@ export default function ClientBookingPage() {
                                 <Label className="text-sm font-medium">Duration</Label>
                                  <RadioGroup value={selectedDuration} onValueChange={setSelectedDuration} className="grid grid-cols-2 gap-2 mt-2">
                                     {durations.map(duration => (
-                                        <Label key={duration} htmlFor={`duration-${duration}`} className="flex items-center justify-center rounded-md border p-3 hover:bg-accent cursor-pointer peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
-                                            <RadioGroupItem value={duration} id={`duration-${duration}`} className="sr-only peer" />
-                                            <span>{duration} min</span>
+                                        <Label key={duration.value} htmlFor={`duration-${duration.value}`} className="flex flex-col items-center justify-center rounded-md border p-3 hover:bg-accent cursor-pointer peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                                            <RadioGroupItem value={duration.value} id={`duration-${duration.value}`} className="sr-only peer" />
+                                            <span className="font-semibold">{duration.label}</span>
+                                            <span className="text-xs text-muted-foreground">{duration.price.toLocaleString('en-US')} TZS</span>
                                         </Label>
                                     ))}
                                 </RadioGroup>
@@ -275,6 +282,9 @@ export default function ClientBookingPage() {
                             {new Date(booking.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} at {new Date(booking.date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                             {booking.duration && ` (${booking.duration} min)`}
                         </p>
+                        {booking.price && (
+                            <p className="text-sm font-bold text-primary">{booking.price.toLocaleString('en-US')} TZS</p>
+                        )}
                     </div>
                 </div>
                 <div className="flex items-center gap-2 self-end sm:self-center">
