@@ -151,7 +151,7 @@ export default function TherapistChatPage() {
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto p-4 space-y-4">
+      <main className="flex-1 overflow-y-auto p-4 space-y-4 secure-chat">
         {messages.map((msg) => (
            <div key={msg.id} className={cn("flex gap-2 items-end group", msg.senderId === user?.uid ? 'justify-end' : 'justify-start')}>
              {msg.senderId === user?.uid && (
