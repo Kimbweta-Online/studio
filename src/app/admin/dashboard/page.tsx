@@ -10,7 +10,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Users, Calendar, CheckCircle, Clock } from "lucide-react";
+import { Users, Calendar, CheckCircle, Clock, MessageSquare } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export default function AdminDashboardPage() {
   const [users, setUsers] = useState<User[]>([]);
@@ -121,6 +123,7 @@ export default function AdminDashboardPage() {
                             <TableHead>Role</TableHead>
                             <TableHead>Status</TableHead>
                             <TableHead>Email</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -131,18 +134,21 @@ export default function AdminDashboardPage() {
                                     <TableCell><Skeleton className="h-6 w-20" /></TableCell>
                                     <TableCell><Skeleton className="h-6 w-24" /></TableCell>
                                     <TableCell><Skeleton className="h-4 w-40" /></TableCell>
+                                    <TableCell><Skeleton className="h-9 w-9 ml-auto" /></TableCell>
                                 </TableRow>
                             ))
                         ) : (
                             users.map(user => (
-                                <TableRow key={user.id}>
+                                <TableRow key={user.id} className="hover:bg-muted/50">
                                     <TableCell>
+                                      <Link href={`/admin/users/${user.id}`}>
                                         <div className="flex items-center gap-3">
                                             <Avatar className="h-10 w-10 text-2xl flex items-center justify-center bg-secondary">
                                                 <span>{user.avatar}</span>
                                             </Avatar>
                                             <span className="font-medium">{user.name}</span>
                                         </div>
+                                      </Link>
                                     </TableCell>
                                     <TableCell>
                                         <Badge variant={getRoleVariant(user.role)}>{user.role}</Badge>
@@ -153,6 +159,15 @@ export default function AdminDashboardPage() {
                                         </Badge>
                                     </TableCell>
                                     <TableCell>{user.email}</TableCell>
+                                     <TableCell className="text-right">
+                                        {user.role === 'client' && (
+                                            <Button variant="outline" size="icon" asChild>
+                                                <Link href={`/admin/users/${user.id}`}>
+                                                    <MessageSquare className="h-4 w-4" />
+                                                </Link>
+                                            </Button>
+                                        )}
+                                    </TableCell>
                                 </TableRow>
                             ))
                         )}
