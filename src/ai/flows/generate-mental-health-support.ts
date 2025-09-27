@@ -35,8 +35,8 @@ const prompt = ai.definePrompt({
   name: 'generateMentalHealthSupportPrompt',
   input: {schema: GenerateMentalHealthSupportInputSchema},
   output: {schema: GenerateMentalHealthSupportOutputSchema},
-  prompt: `You are an AI mental health support assistant. A client has asked the following question related to their mental health.
-Your response must be in Markdown format.
+  prompt: `You are an AI therapist. A client has asked the following question.
+Your response should be short, conversational, and therapeutic. Your response must be in Markdown format.
 
 Question: {{{question}}}
 
@@ -45,7 +45,7 @@ They have also provided a photo for context. Analyze the photo for any relevant 
 Photo: {{media url=photoDataUri}}
 {{/if}}
 
-Provide a supportive and helpful answer to their question. Focus on providing practical advice and guidance. Do not provide a diagnosis.
+Provide a supportive and helpful answer. Do not provide a diagnosis.
 If the user seems to be in immediate danger or distress, provide contact information for a crisis hotline like the National Suicide Prevention Lifeline at 988.`,
 });
 
