@@ -8,7 +8,7 @@ import type { User, Booking } from "@/lib/data";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Avatar } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Users, Calendar, CheckCircle, Clock, MessageSquare, UserCheck } from "lucide-react";
 import Link from "next/link";
@@ -180,8 +180,9 @@ export default function AdminDashboardPage() {
                                 <TableRow key={therapist.id} className="hover:bg-muted/50">
                                      <TableCell>
                                         <div className="flex items-center gap-3">
-                                            <Avatar className="h-10 w-10 text-2xl flex items-center justify-center bg-secondary">
-                                                <span>{therapist.avatar}</span>
+                                            <Avatar>
+                                                <AvatarImage src={therapist.avatarUrl || undefined} alt={therapist.name} />
+                                                <AvatarFallback className="text-lg bg-secondary">{therapist.avatar}</AvatarFallback>
                                             </Avatar>
                                             <span className="font-medium">{therapist.name}</span>
                                         </div>
@@ -246,8 +247,9 @@ export default function AdminDashboardPage() {
                                     <TableCell>
                                       <Link href={`/admin/users/${user.id}`}>
                                         <div className="flex items-center gap-3">
-                                            <Avatar className="h-10 w-10 text-2xl flex items-center justify-center bg-secondary">
-                                                <span>{user.avatar}</span>
+                                            <Avatar>
+                                                <AvatarImage src={user.avatarUrl || undefined} alt={user.name} />
+                                                <AvatarFallback className="text-lg bg-secondary">{user.avatar}</AvatarFallback>
                                             </Avatar>
                                             <span className="font-medium">{user.name}</span>
                                         </div>
@@ -281,3 +283,5 @@ export default function AdminDashboardPage() {
     </div>
   );
 }
+
+    

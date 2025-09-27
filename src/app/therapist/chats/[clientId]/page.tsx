@@ -6,7 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
 import { db } from '@/lib/firebase';
 import { collection, doc, query, orderBy, onSnapshot, addDoc, serverTimestamp, getDoc, setDoc, where, getDocs, updateDoc } from 'firebase/firestore';
-import { Avatar } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -142,8 +142,9 @@ export default function TherapistChatPage() {
         <Button variant="ghost" size="icon" onClick={() => router.back()}>
           <ArrowLeft />
         </Button>
-        <Avatar className="h-10 w-10 text-2xl flex items-center justify-center bg-secondary">
-            {client.avatar}
+        <Avatar>
+            <AvatarImage src={client.avatarUrl || undefined} alt={client.name} />
+            <AvatarFallback className="bg-secondary">{client.avatar}</AvatarFallback>
         </Avatar>
         <div>
           <h2 className="font-bold text-lg">{client.name}</h2>
@@ -204,3 +205,5 @@ export default function TherapistChatPage() {
     </div>
   );
 }
+
+    

@@ -61,6 +61,7 @@ export default function SignupPage() {
         role: role,
         isOnline: true,
         avatar: avatar,
+        avatarUrl: null,
         ...(values.role === "therapist" && {
             specialty: "Not Specified",
             bio: "",
@@ -76,7 +77,9 @@ export default function SignupPage() {
       if (role === 'admin') {
           router.push('/admin/dashboard');
       } else if (role === "therapist") {
-        router.push("/therapist/dashboard");
+        // Redirect to profile to complete details
+        toast({ title: "Complete Your Profile", description: "Please complete your professional profile to be listed."});
+        router.push("/therapist/profile");
       } else {
         router.push("/client/dashboard");
       }
@@ -197,3 +200,5 @@ export default function SignupPage() {
     </div>
   );
 }
+
+    

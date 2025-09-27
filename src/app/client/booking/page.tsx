@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
 import { collection, query, where, getDocs, doc, setDoc, getDoc, addDoc, serverTimestamp } from "firebase/firestore";
-import { Avatar } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -229,8 +229,9 @@ export default function ClientBookingPage() {
             {therapists.map((therapist) => (
                 <Card key={therapist.id}>
                 <CardHeader className="flex-row items-center gap-4">
-                    <Avatar className="h-16 w-16 text-4xl flex items-center justify-center bg-secondary">
-                        {therapist.avatar || '🧑‍⚕️'}
+                    <Avatar className="h-16 w-16">
+                        <AvatarImage src={therapist.avatarUrl || undefined} alt={therapist.name} />
+                        <AvatarFallback className="text-2xl bg-secondary">{therapist.avatar}</AvatarFallback>
                     </Avatar>
                     <div>
                     <CardTitle className="font-headline">{therapist.name}</CardTitle>
@@ -360,8 +361,9 @@ export default function ClientBookingPage() {
             return (
               <Card key={booking.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 gap-4">
                 <div className="flex items-center gap-4">
-                    <Avatar className="text-2xl flex items-center justify-center bg-secondary">
-                        {therapist?.avatar || '🧑‍⚕️'}
+                    <Avatar>
+                        <AvatarImage src={therapist?.avatarUrl || undefined} alt={therapist?.name} />
+                        <AvatarFallback className="bg-secondary">{therapist?.avatar || '🧑‍⚕️'}</AvatarFallback>
                     </Avatar>
                     <div>
                         <p className="font-semibold">Session with {therapist?.name}</p>
@@ -397,6 +399,4 @@ export default function ClientBookingPage() {
     </div>
   );
 
-    
-    
     

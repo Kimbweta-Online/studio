@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Avatar } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { db } from "@/lib/firebase";
@@ -11,14 +11,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/auth-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { FirebaseError } from "firebase/app";
+import type { User } from "@/lib/data";
 
-type User = {
-    id: string;
-    name: string;
-    role: 'client' | 'therapist';
-    isOnline: boolean;
-    avatar?: string;
-}
 
 export default function TherapistDashboard() {
     const { toast } = useToast();
@@ -101,8 +95,9 @@ export default function TherapistDashboard() {
                             activeUsers.length > 0 ? activeUsers.map(user => (
                                 <div key={user.id} className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
-                                        <Avatar className="h-10 w-10 text-2xl flex items-center justify-center bg-secondary">
-                                            <span>{user.avatar}</span>
+                                        <Avatar>
+                                            <AvatarImage src={user.avatarUrl || undefined} alt={user.name} />
+                                            <AvatarFallback className="bg-secondary">{user.avatar}</AvatarFallback>
                                         </Avatar>
                                         <span>{user.name}</span>
                                     </div>
@@ -118,3 +113,5 @@ export default function TherapistDashboard() {
     </div>
   );
 }
+
+    

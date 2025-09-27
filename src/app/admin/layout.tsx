@@ -1,9 +1,10 @@
+
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Avatar } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/logo";
 import { LayoutGrid, LogOut } from "lucide-react";
@@ -79,8 +80,11 @@ export default function AdminLayout({
 
         <div className="mt-auto space-y-4">
            <div className="flex items-center gap-3">
-              <Avatar className="bg-secondary text-2xl flex items-center justify-center">
-                  <span>👑</span>
+              <Avatar>
+                  <AvatarImage src={user.photoURL || undefined} alt={user.displayName || "Admin"} />
+                  <AvatarFallback className="bg-secondary text-2xl flex items-center justify-center">
+                    👑
+                  </AvatarFallback>
               </Avatar>
               <div className="flex flex-col truncate">
                   <span className="font-semibold truncate">{user.displayName || "Super Admin"}</span>
@@ -104,3 +108,5 @@ export default function AdminLayout({
       </div>
     </div>
   );
+
+    

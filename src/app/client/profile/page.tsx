@@ -1,11 +1,12 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/context/auth-context";
-import { db, auth } from "@/lib/firebase";
+import { db, auth, storage } from "@/lib/firebase";
 import { doc, getDoc, updateDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { updateProfile, updatePassword } from "firebase/auth";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -15,14 +16,13 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Booking } from "@/lib/data";
-import { Loader2 } from "lucide-react";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Loader2, Camera } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Avatar as AvatarComponent, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-const avatarOptions = ['😀', '🧠', '❤️', '🧘', '⭐', '💡', '🤝', '👤'];
 
 const passwordFormSchema = z.object({
     password: z.string().min(6, "Password must be at least 6 characters."),
@@ -35,13 +35,15 @@ const passwordFormSchema = z.object({
 
 export default function ClientProfilePage() {
     const { toast } = useToast();
-    const { user } = useAuth();
+    const { user, setUser: setAuthUser } = useAuth();
     const [userData, setUserData] = useState<any>(null);
     const [bookings, setBookings] = useState<Booking[]>([]);
     const [loading, setLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [isSavingPassword, setIsSavingPassword] = useState(false);
-    const [selectedAvatar, setSelectedAvatar] = useState<string>('');
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const passwordForm = useForm<z.infer<typeof passwordFormSchema>>({
         resolver: zodResolver(passwordFormSchema),
@@ -62,7 +64,7 @@ export default function ClientProfilePage() {
                 if (userDoc.exists()) {
                     const data = userDoc.data();
                     setUserData(data);
-                    setSelectedAvatar(data.avatar || '😀');
+                    setPreviewUrl(data.avatarUrl || null);
                 }
 
                 // Fetch bookings
@@ -82,6 +84,17 @@ export default function ClientProfilePage() {
         fetchUserData();
     }, [user, toast]);
     
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            setSelectedFile(file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPreviewUrl(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
     
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -93,18 +106,31 @@ export default function ClientProfilePage() {
             const name = (form.elements.namedItem("name") as HTMLInputElement).value;
             const phone = (form.elements.namedItem("phone") as HTMLInputElement).value;
             
+            let avatarUrl = userData.avatarUrl;
+
+            if (selectedFile) {
+                const storageRef = ref(storage, `avatars/${user.uid}/${selectedFile.name}`);
+                const snapshot = await uploadBytes(storageRef, selectedFile);
+                avatarUrl = await getDownloadURL(snapshot.ref);
+            }
+            
             const userDocRef = doc(db, "users", user.uid);
             await updateDoc(userDocRef, {
                 name: name,
                 phone: phone,
-                avatar: selectedAvatar,
+                avatarUrl: avatarUrl,
             });
 
             if (auth.currentUser) {
-              await updateProfile(auth.currentUser, { displayName: name });
+              await updateProfile(auth.currentUser, { displayName: name, photoURL: avatarUrl });
+              // Force update of auth context
+              if (setAuthUser) {
+                setAuthUser({...auth.currentUser});
+              }
             }
             
-            setUserData((prev: any) => ({ ...prev, name, phone, avatar: selectedAvatar }));
+            setUserData((prev: any) => ({ ...prev, name, phone, avatarUrl: avatarUrl }));
+            setSelectedFile(null);
 
             toast({
                 title: "Profile Saved",
@@ -125,9 +151,11 @@ export default function ClientProfilePage() {
         }
         setIsSavingPassword(true);
         try {
-            await updatePassword(user, values.password);
-            toast({ title: "Password Updated", description: "Your password has been changed successfully." });
-            passwordForm.reset();
+            if (auth.currentUser) {
+                await updatePassword(auth.currentUser, values.password);
+                toast({ title: "Password Updated", description: "Your password has been changed successfully." });
+                passwordForm.reset();
+            }
         } catch (error: any) {
             console.error("Error changing password:", error);
             toast({ variant: "destructive", title: "Update Failed", description: `Could not change your password: ${error.message}. You may need to sign out and sign back in.` });
@@ -171,26 +199,30 @@ export default function ClientProfilePage() {
                     </CardHeader>
                     <CardContent>
                         <form onSubmit={handleSubmit}>
-                            <div className="space-y-2 mb-4">
-                                <Label>Choose Your Avatar</Label>
-                                <RadioGroup
-                                    value={selectedAvatar}
-                                    onValueChange={setSelectedAvatar}
-                                    className="flex flex-wrap gap-2 pt-2"
-                                >
-                                    {avatarOptions.map((avatar) => (
-                                    <Label
-                                        key={avatar}
-                                        htmlFor={`avatar-${avatar}`}
-                                        className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
-                                    >
-                                        <RadioGroupItem value={avatar} id={`avatar-${avatar}`} className="sr-only peer" />
-                                        <span className="text-3xl">{avatar}</span>
-                                    </Label>
-                                    ))}
-                                </RadioGroup>
+                            <div className="space-y-4 mb-4">
+                                <Label>Profile Picture</Label>
+                                <div className="flex items-center gap-4">
+                                    <AvatarComponent className="h-24 w-24">
+                                        <AvatarImage src={previewUrl || undefined} alt={userData.name} />
+                                        <AvatarFallback className="text-4xl">{userData.avatar}</AvatarFallback>
+                                    </AvatarComponent>
+                                    <div className="flex flex-col gap-2">
+                                        <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
+                                            <Camera className="mr-2 h-4 w-4" />
+                                            Change Picture
+                                        </Button>
+                                        <Input
+                                            ref={fileInputRef}
+                                            type="file"
+                                            accept="image/*"
+                                            className="hidden"
+                                            onChange={handleFileChange}
+                                        />
+                                        <p className="text-xs text-muted-foreground">JPG, PNG, or GIF. 2MB max.</p>
+                                    </div>
+                                </div>
                             </div>
-                            <Separator className="my-4" />
+                            <Separator className="my-6" />
                             <div className="grid md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="name">Full Name</Label>
@@ -284,3 +316,5 @@ export default function ClientProfilePage() {
     </div>
   );
 }
+
+    

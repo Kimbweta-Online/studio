@@ -1,10 +1,10 @@
 
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Avatar } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/logo";
 import { Bot, CalendarDays, LayoutGrid, LogOut, MessageCircle, User } from "lucide-react";
@@ -21,22 +21,12 @@ export default function ClientLayout({
   const pathname = usePathname();
   const router = useRouter();
   const { user, loading } = useAuth();
-  const [avatar, setAvatar] = useState('😀');
 
   const isActive = (path: string) => pathname.startsWith(path);
 
   useEffect(() => {
     if (!loading && !user) {
       router.push('/login');
-    } else if (user) {
-        const fetchUserData = async () => {
-            const userDocRef = doc(db, "users", user.uid);
-            const userDoc = await getDoc(userDocRef);
-            if (userDoc.exists()) {
-                setAvatar(userDoc.data().avatar || '😀');
-            }
-        };
-        fetchUserData();
     }
   }, [user, loading, router]);
   
@@ -87,8 +77,11 @@ export default function ClientLayout({
 
         <div className="mt-auto space-y-4">
            <div className="flex items-center gap-3">
-              <Avatar className="bg-secondary text-2xl flex items-center justify-center">
-                  {avatar}
+              <Avatar>
+                  <AvatarImage src={user.photoURL || undefined} alt={user.displayName || "Client"} />
+                  <AvatarFallback className="bg-secondary text-lg flex items-center justify-center">
+                    {(user.displayName || "C").charAt(0)}
+                  </AvatarFallback>
               </Avatar>
               <div className="flex flex-col truncate">
                   <span className="font-semibold truncate">{user.displayName || "Client User"}</span>
@@ -113,4 +106,5 @@ export default function ClientLayout({
     </div>
   );
 }
+
     

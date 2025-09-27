@@ -1,24 +1,29 @@
+
 "use client";
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, ReactNode, Dispatch, SetStateAction } from 'react';
 import { User, onAuthStateChanged } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 
+// Use a more specific type for the user object to avoid 'any'
+type AuthUser = User & { [key: string]: any };
+
 interface AuthContextType {
-  user: User | null;
+  user: AuthUser | null;
   loading: boolean;
+  setUser: Dispatch<SetStateAction<AuthUser | null>>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
+      setUser(user as AuthUser);
       setLoading(false);
     });
 
@@ -38,7 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading }}>
+    <AuthContext.Provider value={{ user, loading, setUser }}>
       {children}
     </AuthContext.Provider>
   );
@@ -51,3 +56,5 @@ export function useAuth() {
   }
   return context;
 }
+
+    

@@ -7,7 +7,7 @@ import { db } from '@/lib/firebase';
 import { doc, getDoc, collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import type { User, Booking, ChatMessage } from '@/lib/data';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Avatar } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, Bot, Calendar, MessageCircle, Paperclip, User as UserIcon } from 'lucide-react';
@@ -149,7 +149,8 @@ export default function UserDetailPage() {
           <Card>
             <CardHeader className="flex-row items-center gap-4">
                  <Avatar className="h-16 w-16 text-4xl flex items-center justify-center bg-secondary">
-                    <span>{user.avatar}</span>
+                    <AvatarImage src={user.avatarUrl || undefined} alt={user.name} />
+                    <AvatarFallback>{user.avatar}</AvatarFallback>
                 </Avatar>
                 <div>
                     <CardTitle className="font-headline">{user.name}</CardTitle>
@@ -197,7 +198,8 @@ export default function UserDetailPage() {
                         <div key={chat.id} className="p-4 rounded-lg bg-muted/50">
                             <div className="flex items-start gap-3">
                                 <Avatar className="h-8 w-8 text-xl flex items-center justify-center bg-secondary">
-                                    <span>{user.avatar}</span>
+                                    <AvatarImage src={user.avatarUrl || undefined} alt={user.name} />
+                                    <AvatarFallback>{user.avatar}</AvatarFallback>
                                 </Avatar>
                                 <div className="flex-1">
                                     <p className="font-semibold text-sm">Question</p>
@@ -238,7 +240,10 @@ export default function UserDetailPage() {
                     {therapistChats.length > 0 ? therapistChats.map(chat => (
                         <div key={chat.therapist.id}>
                             <div className="flex items-center gap-3 mb-4">
-                                <Avatar className="h-8 w-8 text-xl flex items-center justify-center bg-secondary"><span>{chat.therapist.avatar}</span></Avatar>
+                                <Avatar className="h-8 w-8">
+                                    <AvatarImage src={chat.therapist.avatarUrl || undefined} alt={chat.therapist.name} />
+                                    <AvatarFallback className="bg-secondary">{chat.therapist.avatar}</AvatarFallback>
+                                </Avatar>
                                 <h3 className="font-semibold">Conversation with {chat.therapist.name}</h3>
                             </div>
                             <div className="space-y-4 max-h-96 overflow-y-auto pr-4">

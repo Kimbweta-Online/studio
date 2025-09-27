@@ -22,9 +22,17 @@ const nextConfig: NextConfig = {
         hostname: 'i.ibb.co',
         port: '',
         pathname: '/**',
-      }
+      },
+       {
+        protocol: "https",
+        hostname: "firebasestorage.googleapis.com",
+        port: "",
+        pathname: "/**",
+      },
     ],
   },
 };
 
 export default nextConfig;
+
+    

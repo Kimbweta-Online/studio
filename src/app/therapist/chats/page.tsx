@@ -7,7 +7,7 @@ import { useAuth } from '@/context/auth-context';
 import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs, doc, orderBy, limit, getDoc } from 'firebase/firestore';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
-import { Avatar } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { MessageCircle } from 'lucide-react';
 import type { User, ChatMessage } from '@/lib/data';
@@ -80,8 +80,9 @@ export default function TherapistChatsListPage() {
             <Link key={client.id} href={`/therapist/chats/${client.id}`} passHref>
               <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
                 <CardContent className="p-4 flex items-center gap-4">
-                  <Avatar className="h-12 w-12 text-2xl flex items-center justify-center bg-secondary">
-                    {client.avatar || '😀'}
+                  <Avatar className="h-12 w-12">
+                    <AvatarImage src={client.avatarUrl || undefined} alt={client.name} />
+                    <AvatarFallback className="text-2xl bg-secondary">{client.avatar || '😀'}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1 truncate">
                     <p className="font-semibold">{client.name}</p>
@@ -109,3 +110,5 @@ export default function TherapistChatsListPage() {
     </div>
   );
 }
+
+    
