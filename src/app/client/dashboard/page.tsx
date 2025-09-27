@@ -6,9 +6,8 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { quotes as staticQuotes } from '@/lib/data';
-import { ArrowRight, Bot } from 'lucide-react';
+import { Bot } from 'lucide-react';
 import { Player } from '@lottiefiles/react-lottie-player';
-import { LosadaRatioWidget } from '@/components/losada-ratio-widget';
 
 // A type for the local quote data
 type StaticQuote = {
@@ -34,8 +33,6 @@ export default function ClientDashboard() {
         <h1 className="text-3xl font-bold font-headline">Client Dashboard</h1>
         <p className="text-muted-foreground">Your space for growth and support.</p>
       </div>
-
-       <LosadaRatioWidget />
 
       <Card className="bg-primary/10 border-primary/20 shadow-lg">
         <CardContent className="p-6 flex flex-col md:flex-row items-center gap-6">

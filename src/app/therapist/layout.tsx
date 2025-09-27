@@ -7,7 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/logo";
-import { CalendarCheck, LayoutGrid, LogOut, MessageCircle, User, Quote } from "lucide-react";
+import { CalendarCheck, LayoutGrid, LogOut, MessageCircle, User } from "lucide-react";
 import { useAuth } from '@/context/auth-context';
 import { auth, db } from '@/lib/firebase';
 import { signOut } from 'firebase/auth';
@@ -76,9 +76,6 @@ export default function TherapistLayout({
         <nav className="flex-1 space-y-2">
             <Link href="/therapist/dashboard" className={`flex items-center gap-3 p-2 rounded-lg ${isActive("/therapist/dashboard") ? 'bg-accent text-accent-foreground' : 'hover:bg-accent'}`}>
                 <LayoutGrid /><span>Dashboard</span>
-            </Link>
-            <Link href="/therapist/quotes" className={`flex items-center gap-3 p-2 rounded-lg ${isActive("/therapist/quotes") ? 'bg-accent text-accent-foreground' : 'hover:bg-accent'}`}>
-                <Quote /><span>Quotes</span>
             </Link>
             <Link href="/therapist/chats" className={`flex items-center gap-3 p-2 rounded-lg ${isActive("/therapist/chats") ? 'bg-accent text-accent-foreground' : 'hover:bg-accent'}`}>
                 <MessageCircle /><span>Chats</span>
