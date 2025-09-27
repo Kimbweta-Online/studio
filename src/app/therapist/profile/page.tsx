@@ -129,10 +129,6 @@ export default function TherapistProfilePage() {
 
              if (auth.currentUser) {
                 await updateProfile(auth.currentUser, { displayName: name, photoURL: avatarUrl });
-                // Force update of auth context
-                if (setAuthUser) {
-                  setAuthUser({...auth.currentUser});
-                }
             }
             
             setUserData((prev: any) => ({ ...prev, name, specialty, bio, isOnline: isAvailable, avatarUrl: avatarUrl, phone }));

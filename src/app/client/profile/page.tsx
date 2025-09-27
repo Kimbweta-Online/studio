@@ -123,10 +123,6 @@ export default function ClientProfilePage() {
 
             if (auth.currentUser) {
               await updateProfile(auth.currentUser, { displayName: name, photoURL: avatarUrl });
-              // Force update of auth context
-              if (setAuthUser) {
-                setAuthUser({...auth.currentUser});
-              }
             }
             
             setUserData((prev: any) => ({ ...prev, name, phone, avatarUrl: avatarUrl }));
