@@ -124,7 +124,7 @@ export default function TherapistProfilePage() {
                 specialty: specialty,
                 bio: bio,
                 isOnline: isAvailable,
-                avatarUrl: avatarUrl,
+                avatarUrl: avatarUrl || null,
             });
 
              if (auth.currentUser) {
@@ -328,5 +328,3 @@ export default function TherapistProfilePage() {
     </div>
   );
 }
-
-    

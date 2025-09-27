@@ -118,7 +118,7 @@ export default function ClientProfilePage() {
             await updateDoc(userDocRef, {
                 name: name,
                 phone: phone,
-                avatarUrl: avatarUrl,
+                avatarUrl: avatarUrl || null,
             });
 
             if (auth.currentUser) {
@@ -316,5 +316,3 @@ export default function ClientProfilePage() {
     </div>
   );
 }
-
-    
