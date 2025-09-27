@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Booking } from "@/lib/data";
-import { Loader2, Camera } from "lucide-react";
+import { Loader2, Camera, Upload } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -35,12 +35,13 @@ const passwordFormSchema = z.object({
 
 export default function ClientProfilePage() {
     const { toast } = useToast();
-    const { user, setUser: setAuthUser } = useAuth();
+    const { user } = useAuth();
     const [userData, setUserData] = useState<any>(null);
     const [bookings, setBookings] = useState<Booking[]>([]);
     const [loading, setLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [isSavingPassword, setIsSavingPassword] = useState(false);
+    const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -96,6 +97,36 @@ export default function ClientProfilePage() {
         }
     };
     
+    const handlePhotoUpload = async () => {
+        if (!user || !selectedFile) return;
+        setIsUploadingPhoto(true);
+        try {
+            const storageRef = ref(storage, `avatars/${user.uid}/${selectedFile.name}`);
+            const snapshot = await uploadBytes(storageRef, selectedFile);
+            const avatarUrl = await getDownloadURL(snapshot.ref);
+            
+            const userDocRef = doc(db, "users", user.uid);
+            await updateDoc(userDocRef, { avatarUrl });
+
+            if (auth.currentUser) {
+              await updateProfile(auth.currentUser, { photoURL: avatarUrl });
+            }
+
+            setUserData((prev: any) => ({ ...prev, avatarUrl }));
+            setSelectedFile(null); // Clear selection after upload
+
+            toast({
+                title: "Photo Uploaded",
+                description: "Your profile picture has been updated.",
+            });
+        } catch (error: any) {
+            console.error("Error uploading photo:", error);
+            toast({ variant: "destructive", title: "Upload Failed", description: `Could not upload your photo: ${error.message}` });
+        } finally {
+            setIsUploadingPhoto(false);
+        }
+    }
+    
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (!user || !userData) return;
@@ -105,28 +136,18 @@ export default function ClientProfilePage() {
             const form = e.currentTarget;
             const name = (form.elements.namedItem("name") as HTMLInputElement).value;
             const phone = (form.elements.namedItem("phone") as HTMLInputElement).value;
-            
-            let avatarUrl = userData.avatarUrl;
 
-            if (selectedFile) {
-                const storageRef = ref(storage, `avatars/${user.uid}/${selectedFile.name}`);
-                const snapshot = await uploadBytes(storageRef, selectedFile);
-                avatarUrl = await getDownloadURL(snapshot.ref);
-            }
-            
             const userDocRef = doc(db, "users", user.uid);
             await updateDoc(userDocRef, {
                 name: name,
                 phone: phone,
-                avatarUrl: avatarUrl || null,
             });
 
-            if (auth.currentUser) {
-              await updateProfile(auth.currentUser, { displayName: name, photoURL: avatarUrl });
+            if (auth.currentUser && auth.currentUser.displayName !== name) {
+              await updateProfile(auth.currentUser, { displayName: name });
             }
             
-            setUserData((prev: any) => ({ ...prev, name, phone, avatarUrl: avatarUrl }));
-            setSelectedFile(null);
+            setUserData((prev: any) => ({ ...prev, name, phone }));
 
             toast({
                 title: "Profile Saved",
@@ -199,14 +220,22 @@ export default function ClientProfilePage() {
                                 <Label>Profile Picture</Label>
                                 <div className="flex items-center gap-4">
                                     <AvatarComponent className="h-24 w-24">
-                                        <AvatarImage src={previewUrl || undefined} alt={userData.name} />
+                                        <AvatarImage src={previewUrl || userData.avatarUrl || undefined} alt={userData.name} />
                                         <AvatarFallback className="text-4xl">{userData.avatar}</AvatarFallback>
                                     </AvatarComponent>
                                     <div className="flex flex-col gap-2">
-                                        <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
-                                            <Camera className="mr-2 h-4 w-4" />
-                                            Change Picture
-                                        </Button>
+                                        <div className="flex gap-2">
+                                            <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
+                                                <Camera className="mr-2 h-4 w-4" />
+                                                Change Picture
+                                            </Button>
+                                            {selectedFile && (
+                                                <Button type="button" onClick={handlePhotoUpload} disabled={isUploadingPhoto}>
+                                                    {isUploadingPhoto ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Upload className="mr-2 h-4 w-4" />}
+                                                    Upload
+                                                </Button>
+                                            )}
+                                        </div>
                                         <Input
                                             ref={fileInputRef}
                                             type="file"
