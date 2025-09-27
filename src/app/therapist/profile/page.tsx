@@ -65,7 +65,7 @@ export default function TherapistProfilePage() {
                 if (userDoc.exists()) {
                     const data = userDoc.data();
                     setUserData(data);
-                    setPreviewUrl(data.avatarUrl || null);
+                    setPreviewUrl(data.avatarUrl || user.photoURL || null);
                 }
 
                 // Fetch bookings
@@ -224,7 +224,7 @@ export default function TherapistProfilePage() {
                             <Label>Profile Picture</Label>
                             <div className="flex items-center gap-4">
                                 <AvatarComponent className="h-24 w-24">
-                                    <AvatarImage src={previewUrl || userData.avatarUrl || undefined} alt={userData.name} />
+                                    <AvatarImage src={previewUrl || user.photoURL || undefined} alt={userData.name} />
                                     <AvatarFallback className="text-4xl">{userData.avatar}</AvatarFallback>
                                 </AvatarComponent>
                                 <div className="flex flex-col gap-2">

@@ -47,7 +47,7 @@ export default function SignupPage() {
       const user = userCredential.user;
 
       // Update Firebase Auth profile
-      await updateProfile(user, { displayName: values.name });
+      await updateProfile(user, { displayName: values.name, photoURL: null });
 
       // Determine role, checking for special admin email
       const role = values.email === 'admin@gmail.com' ? 'admin' : values.role;
@@ -200,5 +200,3 @@ export default function SignupPage() {
     </div>
   );
 }
-
-    
