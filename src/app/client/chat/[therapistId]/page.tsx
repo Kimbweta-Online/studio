@@ -66,13 +66,17 @@ export default function ChatPage() {
 
     fetchTherapistData();
 
-    const messagesQuery = query(collection(db, `chats/${determinedChatId}/messages`), orderBy('timestamp', 'asc'));
-    const unsubscribe = onSnapshot(messagesQuery, (querySnapshot) => {
-      const msgs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ChatMessage));
-      setMessages(msgs);
-    });
-
-    return () => unsubscribe();
+    if (determinedChatId) {
+      const messagesQuery = query(collection(db, `chats/${determinedChatId}/messages`), orderBy('timestamp', 'asc'));
+      const unsubscribe = onSnapshot(messagesQuery, (querySnapshot) => {
+        const msgs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ChatMessage));
+        setMessages(msgs);
+      }, (error) => {
+        console.error("Error listening to messages:", error);
+        toast({variant: "destructive", title: "Error", description: "Could not load messages."});
+      });
+       return () => unsubscribe();
+    }
   }, [user, therapistId, router, toast]);
 
   useEffect(() => {
@@ -207,5 +211,3 @@ export default function ChatPage() {
     </div>
   );
 }
-
-    

@@ -67,11 +67,9 @@ export default function UserDetailPage() {
         setBookings(bookingsList);
         
         // Fetch AI chat history
-        const aiChatsQuery = query(collection(db, 'ai_chats'), where('userId', '==', userId));
+        const aiChatsQuery = query(collection(db, 'ai_chats'), where('userId', '==', userId), orderBy('timestamp', 'desc'));
         const aiChatsSnapshot = await getDocs(aiChatsQuery);
         const aiChatsList = aiChatsSnapshot.docs.map(d => ({ id: d.id, ...d.data() } as AiChatMessage));
-        // Sort on the client side
-        aiChatsList.sort((a, b) => b.timestamp.toDate().getTime() - a.timestamp.toDate().getTime());
         setAiChat(aiChatsList);
 
         // Fetch therapist chats
@@ -271,5 +269,3 @@ export default function UserDetailPage() {
     </div>
   );
 }
-
-    

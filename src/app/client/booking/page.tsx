@@ -277,7 +277,7 @@ export default function ClientBookingPage() {
                                     className="rounded-md border"
                                     disabled={(date) => 
                                         date < new Date(new Date().setDate(new Date().getDate() - 1)) || 
-                                        date.getDay() === 0 // 0 is Sunday, ensuring the week starts from Monday (1) to Saturday (6)
+                                        date.getDay() === 0 // 0 is Sunday
                                     }
                                     modifiers={{ booked: bookedDays }}
                                      modifiersStyles={{
@@ -398,5 +398,3 @@ export default function ClientBookingPage() {
       </section>
     </div>
   );
-
-    
