@@ -93,6 +93,7 @@ export default function TherapistProfilePage() {
         try {
             const form = e.currentTarget;
             const name = (form.elements.namedItem("name") as HTMLInputElement).value;
+            const phone = (form.elements.namedItem("phone") as HTMLInputElement).value;
             const specialty = (form.elements.namedItem("specialty") as HTMLInputElement).value;
             const bio = (form.elements.namedItem("bio") as HTMLTextAreaElement).value;
             const isAvailable = (form.elements.namedItem("availability-status") as HTMLInputElement).checked;
@@ -100,6 +101,7 @@ export default function TherapistProfilePage() {
             const userDocRef = doc(db, "users", user.uid);
             await updateDoc(userDocRef, {
                 name: name,
+                phone: phone,
                 specialty: specialty,
                 bio: bio,
                 isOnline: isAvailable,
@@ -110,7 +112,7 @@ export default function TherapistProfilePage() {
               await updateProfile(auth.currentUser, { displayName: name });
             }
             
-            setUserData((prev: any) => ({ ...prev, name, specialty, bio, isOnline: isAvailable, avatar: selectedAvatar }));
+            setUserData((prev: any) => ({ ...prev, name, specialty, bio, isOnline: isAvailable, avatar: selectedAvatar, phone }));
 
             toast({
                 title: "Profile Saved",
@@ -203,6 +205,10 @@ export default function TherapistProfilePage() {
                                 <Input id="name" name="name" defaultValue={userData.name} />
                             </div>
                             <div className="space-y-2">
+                                <Label htmlFor="phone">Phone Number</Label>
+                                <Input id="phone" name="phone" type="tel" defaultValue={userData.phone || ""} />
+                            </div>
+                            <div className="space-y-2 md:col-span-2">
                                 <Label htmlFor="specialty">Specialty</Label>
                                 <Input id="specialty" name="specialty" defaultValue={userData.specialty} />
                             </div>
