@@ -35,7 +35,7 @@ const passwordFormSchema = z.object({
 
 export default function ClientProfilePage() {
     const { toast } = useToast();
-    const { user } = useAuth();
+    const { user, setUser: setAuthUser } = useAuth();
     const [userData, setUserData] = useState<any>(null);
     const [bookings, setBookings] = useState<Booking[]>([]);
     const [loading, setLoading] = useState(true);
@@ -138,9 +138,10 @@ export default function ClientProfilePage() {
             const phone = (form.elements.namedItem("phone") as HTMLInputElement).value;
 
             const userDocRef = doc(db, "users", user.uid);
-            await updateDoc(userDocRef, {
+             await updateDoc(userDocRef, {
                 name: name,
                 phone: phone,
+                avatarUrl: userData.avatarUrl || null
             });
 
             if (auth.currentUser && auth.currentUser.displayName !== name) {
@@ -220,7 +221,7 @@ export default function ClientProfilePage() {
                                 <Label>Profile Picture</Label>
                                 <div className="flex items-center gap-4">
                                     <AvatarComponent className="h-24 w-24">
-                                        <AvatarImage src={previewUrl || user.photoURL || undefined} alt={userData.name} />
+                                        <AvatarImage src={previewUrl || undefined} alt={userData.name} />
                                         <AvatarFallback className="text-4xl">{userData.avatar}</AvatarFallback>
                                     </AvatarComponent>
                                     <div className="flex flex-col gap-2">
@@ -341,3 +342,5 @@ export default function ClientProfilePage() {
     </div>
   );
 }
+
+    

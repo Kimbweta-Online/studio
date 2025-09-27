@@ -36,7 +36,7 @@ const passwordFormSchema = z.object({
 
 export default function TherapistProfilePage() {
     const { toast } = useToast();
-    const { user } = useAuth();
+    const { user, setUser: setAuthUser } = useAuth();
     const [userData, setUserData] = useState<any>(null);
     const [bookings, setBookings] = useState<Booking[]>([]);
     const [loading, setLoading] = useState(true);
@@ -141,12 +141,13 @@ export default function TherapistProfilePage() {
             const isAvailable = (form.elements.namedItem("availability-status") as HTMLInputElement).checked;
             
             const userDocRef = doc(db, "users", user.uid);
-            await updateDoc(userDocRef, {
+             await updateDoc(userDocRef, {
                 name: name,
                 phone: phone,
                 specialty: specialty,
                 bio: bio,
                 isOnline: isAvailable,
+                avatarUrl: userData.avatarUrl || null,
             });
 
              if (auth.currentUser && auth.currentUser.displayName !== name) {
@@ -224,7 +225,7 @@ export default function TherapistProfilePage() {
                             <Label>Profile Picture</Label>
                             <div className="flex items-center gap-4">
                                 <AvatarComponent className="h-24 w-24">
-                                    <AvatarImage src={previewUrl || user.photoURL || undefined} alt={userData.name} />
+                                    <AvatarImage src={previewUrl || undefined} alt={userData.name} />
                                     <AvatarFallback className="text-4xl">{userData.avatar}</AvatarFallback>
                                 </AvatarComponent>
                                 <div className="flex flex-col gap-2">
@@ -353,3 +354,5 @@ export default function TherapistProfilePage() {
     </div>
   );
 }
+
+    
