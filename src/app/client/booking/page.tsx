@@ -398,3 +398,4 @@ export default function ClientBookingPage() {
       </section>
     </div>
   );
+}
