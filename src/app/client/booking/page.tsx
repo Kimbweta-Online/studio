@@ -40,8 +40,8 @@ const generateTimeSlots = () => {
 const timeSlots = generateTimeSlots();
 
 const durations = [
-    { value: "45", label: "45 min", price: 5000 },
-    { value: "60", label: "1 hour", price: 7000 },
+    { value: "45", label: "45 min" },
+    { value: "60", label: "1 hour" },
 ];
 
 export default function ClientBookingPage() {
@@ -154,7 +154,6 @@ export default function ClientBookingPage() {
             date: finalDate,
             status: 'Pending',
             duration: durationInfo ? parseInt(durationInfo.value) : 0,
-            price: durationInfo ? durationInfo.price : 0,
         };
         
         await setDoc(newBookingRef, newBooking);
@@ -246,7 +245,12 @@ export default function ClientBookingPage() {
                     )}
                 </CardContent>
                 <CardFooter className="flex-col items-stretch space-y-2">
-                    <Button asChild>
+                     <Button asChild>
+                        <a href={`tel:${therapist.phone}`}>
+                            <Phone className="mr-2 h-4 w-4" /> Call Now
+                        </a>
+                    </Button>
+                    <Button asChild variant="secondary">
                         <Link href={`/client/chat/${therapist.id}`}>
                             <MessageCircle className="mr-2 h-4 w-4" /> Chat Now
                         </Link>
@@ -316,7 +320,6 @@ export default function ClientBookingPage() {
                                             <Label key={duration.value} htmlFor={`duration-${duration.value}`} className="flex flex-col items-center justify-center rounded-md border p-3 hover:bg-accent cursor-pointer peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
                                                 <RadioGroupItem value={duration.value} id={`duration-${duration.value}`} className="sr-only peer" />
                                                 <span className="font-semibold text-sm">{duration.label}</span>
-                                                <span className="text-xs text-muted-foreground">{duration.price.toLocaleString('en-US')} TZS</span>
                                             </Label>
                                         ))}
                                     </RadioGroup>
@@ -371,9 +374,6 @@ export default function ClientBookingPage() {
                             {new Date(booking.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} at {new Date(booking.date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                             {booking.duration && ` (${booking.duration} min)`}
                         </p>
-                        {booking.price != null && (
-                            <p className="text-sm font-bold text-primary">{booking.price.toLocaleString('en-US')} TZS</p>
-                        )}
                     </div>
                 </div>
                 <div className="flex items-center gap-2 self-end sm:self-center">

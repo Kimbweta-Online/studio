@@ -178,7 +178,7 @@ export default function UserDetailPage() {
                             <Badge variant={getStatusVariant(booking.status)}>{booking.status}</Badge>
                         </div>
                         <p className="text-muted-foreground">
-                            {booking.duration} min - {booking.price?.toLocaleString()} TZS
+                            {booking.duration} min
                         </p>
                     </div>
                 )) : <p className="text-sm text-muted-foreground text-center py-4">No bookings found.</p>}

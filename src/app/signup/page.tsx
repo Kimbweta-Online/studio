@@ -21,6 +21,7 @@ import { Loader2 } from "lucide-react";
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
   email: z.string().email({ message: "Invalid email address." }),
+  phone: z.string().min(10, { message: "Phone number must be at least 10 digits." }),
   password: z.string().min(6, { message: "Password must be at least 6 characters." }),
   role: z.enum(["client", "therapist"], {
     required_error: "You need to select a role.",
@@ -36,6 +37,7 @@ export default function SignupPage() {
     defaultValues: {
       name: "",
       email: "",
+      phone: "",
       password: "",
       role: "client",
     },
@@ -58,6 +60,7 @@ export default function SignupPage() {
         uid: user.uid,
         name: values.name,
         email: values.email,
+        phone: values.phone,
         role: role,
         isOnline: true,
         avatar: avatar,
@@ -134,6 +137,19 @@ export default function SignupPage() {
                   </FormItem>
                 )}
               />
+               <FormField
+                control={form.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone Number</FormLabel>
+                    <FormControl>
+                      <Input type="tel" placeholder="0712345678" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="password"
@@ -200,3 +216,4 @@ export default function SignupPage() {
     </div>
   );
 }
+

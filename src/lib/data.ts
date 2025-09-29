@@ -10,9 +10,9 @@ export type User = {
   email: string;
   role: 'client' | 'therapist' | 'admin';
   isOnline: boolean;
+  phone: string;
   avatar?: string;
   avatarUrl?: string | null;
-  phone?: string;
   // Therapist-specific fields
   specialty?: string;
   bio?: string;
@@ -42,7 +42,6 @@ export type Booking = {
   date: Date; // Firestore Timestamps will be converted to this
   status: 'Pending' | 'Confirmed' | 'Completed' | 'Cancelled';
   duration?: number;
-  price?: number;
 };
 
 export type ChatMessage = {
