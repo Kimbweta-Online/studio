@@ -50,7 +50,7 @@ export default function TherapistBookingPage() {
                     const date = (data.date as Timestamp).toDate();
                     return { id: doc.id, ...data, date } as Booking;
                 });
-                setBookings(bookingsList.sort((a, b) => b.date.getTime() - a.date.getTime())); // Sort by most recent
+                setBookings(bookingsList.sort((a, b) => a.date.getTime() - b.date.getTime())); // Sort by oldest first
             } catch (error) {
                 console.error("Error fetching bookings:", error);
                 toast({
@@ -182,5 +182,7 @@ export default function TherapistBookingPage() {
         </div>
       );
 }
+
+    
 
     

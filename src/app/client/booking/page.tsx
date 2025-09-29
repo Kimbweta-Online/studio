@@ -94,7 +94,9 @@ export default function ClientBookingPage() {
     // Separate effect for fetching user-specific bookings
     const fetchMyBookings = async () => {
        if (user) {
-          const userBookings = allBookings.filter(b => b.clientId === user.uid);
+          const userBookings = allBookings
+            .filter(b => b.clientId === user.uid)
+            .sort((a, b) => a.date.getTime() - b.date.getTime()); // Sort by oldest first
           setMyBookings(userBookings);
         }
     }
@@ -160,7 +162,7 @@ export default function ClientBookingPage() {
         
         const bookingWithId = { ...newBooking, id: newBookingRef.id, date: finalDate };
         setAllBookings(prev => [...prev, bookingWithId]);
-        setMyBookings(prev => [...prev, bookingWithId]);
+        setMyBookings(prev => [...prev, bookingWithId].sort((a,b) => a.date.getTime() - b.date.getTime()));
         
         toast({
             title: "Booking Request Sent",
@@ -413,3 +415,5 @@ export default function ClientBookingPage() {
     </div>
   );
 }
+
+    
