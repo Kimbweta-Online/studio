@@ -46,6 +46,7 @@ export default function TherapistProfilePage() {
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [isAvailable, setIsAvailable] = useState(false);
 
     const passwordForm = useForm<z.infer<typeof passwordFormSchema>>({
         resolver: zodResolver(passwordFormSchema),
@@ -65,6 +66,7 @@ export default function TherapistProfilePage() {
                 if (userDoc.exists()) {
                     const data = userDoc.data();
                     setUserData(data);
+                    setIsAvailable(data.isOnline || false);
                     setPreviewUrl(data.avatarUrl || user.photoURL || null);
                 }
 
@@ -138,7 +140,6 @@ export default function TherapistProfilePage() {
             const phone = (form.elements.namedItem("phone") as HTMLInputElement).value;
             const specialty = (form.elements.namedItem("specialty") as HTMLInputElement).value;
             const bio = (form.elements.namedItem("bio") as HTMLTextAreaElement).value;
-            const isAvailable = (form.elements.namedItem("availability-status") as HTMLInputElement).checked;
             
             const userDocRef = doc(db, "users", user.uid);
              await updateDoc(userDocRef, {
@@ -273,9 +274,10 @@ export default function TherapistProfilePage() {
                             <Textarea id="bio" name="bio" placeholder="Tell clients about your approach..." rows={4} defaultValue={userData.bio} />
                         </div>
                         <div className="flex items-center space-x-2 mt-4">
-                            <Switch id="availability-status" name="availability-status" defaultChecked={userData.isOnline} />
+                            <Switch id="availability-status" checked={isAvailable} onCheckedChange={setIsAvailable} />
                             <Label htmlFor="availability-status">Available for new bookings</Label>
                         </div>
+
                         <Button type="submit" className="mt-6" disabled={isSaving}>
                             {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             Save Changes
@@ -355,4 +357,3 @@ export default function TherapistProfilePage() {
   );
 }
 
-    
