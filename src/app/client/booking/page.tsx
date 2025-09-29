@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
-import { collection, query, where, getDocs, doc, setDoc, getDoc, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, query, where, getDocs, doc, setDoc, getDoc, addDoc, serverTimestamp, deleteDoc } from "firebase/firestore";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -178,14 +178,28 @@ export default function ClientBookingPage() {
     }
   }
   
-  const handleCancel = (bookingId: string) => {
-    // This is a placeholder. In a real app, you would update the booking status to 'Cancelled' in Firestore.
-    toast({
-        variant: "destructive",
-        title: "Booking Cancelled",
-        description: `Your booking (ID: ${bookingId}) has been cancelled.`,
-    })
-  }
+  const handleCancel = async (bookingId: string) => {
+    try {
+        const bookingRef = doc(db, "bookings", bookingId);
+        await deleteDoc(bookingRef);
+
+        setMyBookings(prev => prev.filter(b => b.id !== bookingId));
+        setAllBookings(prev => prev.filter(b => b.id !== bookingId));
+
+        toast({
+            variant: "destructive",
+            title: "Booking Deleted",
+            description: `Your booking has been permanently deleted.`,
+        });
+    } catch (error) {
+        console.error("Error deleting booking:", error);
+        toast({
+            variant: "destructive",
+            title: "Delete Failed",
+            description: "Could not delete the booking.",
+        });
+    }
+  };
 
   const confirmedSlots = currentTherapist && selectedDate ? getSlotsByStatus(currentTherapist.id, selectedDate, ['Confirmed']) : [];
   const myPendingSlots = currentTherapist && selectedDate && user ? getSlotsByStatus(currentTherapist.id, selectedDate, ['Pending'], user.uid) : [];
