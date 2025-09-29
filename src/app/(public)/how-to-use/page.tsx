@@ -29,8 +29,8 @@ export default function HowToUsePage() {
               <Bot />
             </div>
             <div>
-              <h3 className="font-bold text-lg">2. Talk to the AI Assistant</h3>
-              <p className="text-muted-foreground">Navigate to the "AI Chat" page anytime you need to talk. You can share what's on your mind and even upload a photo if it helps add context. Our AI is designed to provide supportive feedback, not a diagnosis.</p>
+              <h3 className="font-bold text-lg">2. Talk to Dr. Mindset</h3>
+              <p className="text-muted-foreground">Navigate to the "Dr. Mindset" page anytime you need to talk. You can share what's on your mind and even upload a photo if it helps add context. Our AI is designed to provide supportive feedback, not a diagnosis.</p>
             </div>
           </div>
           <div className="flex items-start gap-4">

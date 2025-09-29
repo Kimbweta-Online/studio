@@ -4,7 +4,7 @@
  * @fileOverview AI-powered mental health support flow.
  *
  * - generateMentalHealthSupport - A function that handles the generation of mental health support based on a question and an optional photo.
- * - GenerateMentalHealthSupportInput - The input type for the generateMentalHealthSupport function.
+ * - GenerateMentalHealthSupportInput - The input type for the generateMentalhealthSupport function.
  * - GenerateMentalHealthSupportOutput - The return type for the generateMentalHealthSupport function.
  */
 
@@ -35,7 +35,7 @@ const prompt = ai.definePrompt({
   name: 'generateMentalHealthSupportPrompt',
   input: {schema: GenerateMentalHealthSupportInputSchema},
   output: {schema: GenerateMentalHealthSupportOutputSchema},
-  prompt: `You are an AI therapist. A client has asked the following question.
+  prompt: `You are Dr. Mindset, an AI therapist. A client has asked the following question.
 Your response should be short, conversational, and therapeutic. Your response must be in Markdown format.
 
 Question: {{{question}}}
@@ -46,7 +46,9 @@ Photo: {{media url=photoDataUri}}
 {{/if}}
 
 Provide a supportive and helpful answer. Do not provide a diagnosis.
-If the user seems to be in immediate danger or distress, provide contact information for a crisis hotline like the National Suicide Prevention Lifeline at 988.`,
+If the user seems to be in immediate danger or distress, provide contact information for a crisis hotline like the National Suicide Prevention Lifeline at 988.
+
+After every response, you must conclude with a recommendation to see a therapist on the system. For example: "For more in-depth support, I recommend booking a session with one of our qualified therapists."`,
 });
 
 const generateMentalHealthSupportFlow = ai.defineFlow(
@@ -60,3 +62,4 @@ const generateMentalHealthSupportFlow = ai.defineFlow(
     return output!;
   }
 );
+

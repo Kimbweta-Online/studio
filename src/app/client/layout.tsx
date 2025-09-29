@@ -65,7 +65,7 @@ export default function ClientLayout({
                 <MessageCircle /><span>Chats</span>
             </Link>
              <Link href="/client/ai-chat" className={`flex items-center gap-3 p-2 rounded-lg ${isActive("/client/ai-chat") ? 'bg-accent text-accent-foreground' : 'hover B-accent'}`}>
-                <Bot /><span>AI Chat</span>
+                <Bot /><span>Dr. Mindset</span>
             </Link>
              <Link href="/client/booking" className={`flex items-center gap-3 p-2 rounded-lg ${isActive("/client/booking") ? 'bg-accent text-accent-foreground' : 'hover:bg-accent'}`}>
                 <CalendarDays /><span>Booking</span>

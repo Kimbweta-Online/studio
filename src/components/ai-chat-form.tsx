@@ -117,7 +117,7 @@ export function AiChatForm() {
     <div className="grid md:grid-cols-2 gap-8">
       <Card>
         <CardHeader>
-          <CardTitle className="font-headline text-2xl">Talk to Your AI Assistant</CardTitle>
+          <CardTitle className="font-headline text-2xl">Talk to Dr. Mindset</CardTitle>
           <CardDescription>Share your thoughts and optionally add a photo for more context.</CardDescription>
         </CardHeader>
         <CardContent>
@@ -184,7 +184,7 @@ export function AiChatForm() {
              <div className="p-2 rounded-full bg-primary/20 text-primary">
                 <Bot className="h-6 w-6" />
               </div>
-            <CardTitle className="font-headline text-2xl">AI Response</CardTitle>
+            <CardTitle className="font-headline text-2xl">Dr. Mindset Response</CardTitle>
           </div>
           <CardDescription>Here's some supportive feedback. Remember, this is not a diagnosis.</CardDescription>
         </CardHeader>
@@ -206,7 +206,7 @@ export function AiChatForm() {
             {!isLoading && !aiResponse && (
                 <div className="text-center text-muted-foreground py-10">
                     <Smile className="mx-auto h-12 w-12 mb-4" />
-                    <p>Your AI-generated response will appear here once you submit your question.</p>
+                    <p>Dr. Mindset's response will appear here once you submit your question.</p>
                 </div>
             )}
         </CardContent>
