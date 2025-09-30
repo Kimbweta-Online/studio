@@ -3,12 +3,44 @@
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Bot } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Bot, Mic } from 'lucide-react';
 import { Player } from '@lottiefiles/react-lottie-player';
+import type { Quote } from '@/lib/data';
+import { useEffect, useState } from 'react';
+import { collection, getDocs, limit, orderBy, query } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 
 
 export default function ClientDashboard() {
+    const [quotes, setQuotes] = useState<Quote[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchQuotes = async () => {
+            setLoading(true);
+            try {
+                // Query to get the most recent quotes from all therapists
+                const quotesQuery = query(
+                    collection(db, "quotes"),
+                    orderBy("createdAt", "desc"),
+                    limit(10) 
+                );
+                const querySnapshot = await getDocs(quotesQuery);
+                const quotesList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Quote));
+                setQuotes(quotesList);
+            } catch (error) {
+                console.error("Error fetching quotes:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchQuotes();
+    }, []);
+
   return (
     <div className="space-y-8">
       <div>
@@ -45,9 +77,47 @@ export default function ClientDashboard() {
 
       <div>
         <h2 className="text-2xl font-bold font-headline mb-4">Daily Inspiration</h2>
-        <div className="grid gap-6 md:grid-cols-2">
-           <p className="text-muted-foreground text-center col-span-2 py-10">No inspiration shared yet. Check back later!</p>
-        </div>
+        {loading ? (
+             <div className="grid gap-6 md:grid-cols-2">
+                <Skeleton className="h-48" />
+                <Skeleton className="h-48" />
+            </div>
+        ) : quotes.length > 0 ? (
+            <Carousel
+                opts={{
+                    align: "start",
+                    loop: true,
+                }}
+                className="w-full"
+            >
+                <CarouselContent>
+                    {quotes.map((quote) => (
+                        <CarouselItem key={quote.id} className="md:basis-1/2">
+                            <Card className="h-full flex flex-col">
+                                <CardHeader className="flex-row items-start gap-4">
+                                     <div className="text-4xl">{quote.emoji}</div>
+                                     <div>
+                                        <CardTitle>{quote.title}</CardTitle>
+                                        <CardDescription>by {quote.authorName}</CardDescription>
+                                     </div>
+                                </CardHeader>
+                                <CardContent className="flex-1">
+                                    <p className="text-muted-foreground italic">"{quote.description}"</p>
+                                </CardContent>
+                            </Card>
+                        </CarouselItem>
+                    ))}
+                </CarouselContent>
+                <CarouselPrevious />
+                <CarouselNext />
+            </Carousel>
+        ) : (
+           <Card className="text-muted-foreground text-center col-span-2 py-10 flex flex-col items-center justify-center">
+              <Mic className="h-12 w-12 mb-4" />
+              <p>No inspiration shared yet.</p>
+              <p className="text-sm">Therapists haven't posted any quotes. Check back later!</p>
+           </Card>
+        )}
       </div>
     </div>
   );

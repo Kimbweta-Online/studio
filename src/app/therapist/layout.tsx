@@ -91,6 +91,9 @@ export default function TherapistLayout({
             <NavLink href="/therapist/booking" isActive={isActive("/therapist/booking")}>
                 <CalendarCheck /><span>Bookings</span>
             </NavLink>
+             <NavLink href="/therapist/quotes" isActive={isActive("/therapist/quotes")}>
+                <Mic /><span>Quotes</span>
+            </NavLink>
             <NavLink href="/therapist/profile" isActive={isActive("/therapist/profile")}>
                 <User /><span>Profile</span>
             </NavLink>

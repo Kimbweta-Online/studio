@@ -52,7 +52,3 @@ export type ChatMessage = {
     imageUrl?: string;
     voiceUrl?: string;
 }
-
-// The static arrays (therapists, quotes, bookings, clients) have been removed.
-// The application will now fetch this data from Firebase Firestore.
-export const quotes: Omit<Quote, 'id' | 'authorId' | 'authorName' | 'createdAt'>[] = [];
