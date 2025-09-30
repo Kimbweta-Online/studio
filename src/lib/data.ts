@@ -24,16 +24,6 @@ export type Therapist = User & {
   specialty: string;
 };
 
-export type Quote = {
-  id: string;
-  title: string;
-  description: string;
-  emoji: string;
-  authorId: string; // UID of the therapist who posted
-  authorName: string;
-  createdAt: Timestamp;
-};
-
 export type Booking = {
   id:string;
   therapistId: string;
