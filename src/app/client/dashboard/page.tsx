@@ -5,26 +5,37 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { quotes as staticQuotes } from '@/lib/data';
 import { Bot } from 'lucide-react';
 import { Player } from '@lottiefiles/react-lottie-player';
-
-// A type for the local quote data
-type StaticQuote = {
-    title: string;
-    description: string;
-    emoji: string;
-};
+import { db } from '@/lib/firebase';
+import { collection, getDocs, limit, orderBy, query } from 'firebase/firestore';
+import type { Quote } from '@/lib/data';
+import { Skeleton } from '@/components/ui/skeleton';
 
 
 export default function ClientDashboard() {
-  const [quotes, setQuotes] = useState<StaticQuote[]>([]);
+  const [quotes, setQuotes] = useState<Quote[]>([]);
+  const [loadingQuotes, setLoadingQuotes] = useState(true);
 
   useEffect(() => {
-    // Use the static quotes from the data file.
-    // We shuffle them to show a different set on each page load.
-    const shuffledQuotes = [...staticQuotes].sort(() => 0.5 - Math.random());
-    setQuotes(shuffledQuotes.slice(0, 2));
+    const fetchQuotes = async () => {
+      setLoadingQuotes(true);
+      try {
+        const q = query(
+          collection(db, 'quotes'),
+          orderBy('createdAt', 'desc'),
+          limit(4)
+        );
+        const querySnapshot = await getDocs(q);
+        const fetchedQuotes = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Quote));
+        setQuotes(fetchedQuotes);
+      } catch (error) {
+        console.error("Error fetching quotes:", error);
+      } finally {
+        setLoadingQuotes(false);
+      }
+    };
+    fetchQuotes();
   }, []);
 
   return (
@@ -54,7 +65,7 @@ export default function ClientDashboard() {
             <Button asChild>
               <Link href="/client/ai-chat">
                 <Bot className="mr-2 h-4 w-4" />
-                Chat with AI Assistant
+                Chat with Dr. Mindset
               </Link>
             </Button>
           </div>
@@ -63,9 +74,23 @@ export default function ClientDashboard() {
 
       <div>
         <h2 className="text-2xl font-bold font-headline mb-4">Daily Inspiration</h2>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
-           {quotes.map((quote, index) => (
-              <Card key={index} className="overflow-hidden flex flex-col">
+        <div className="grid gap-6 md:grid-cols-2">
+           {loadingQuotes ? (
+             Array.from({ length: 2 }).map((_, index) => (
+                <Card key={index}>
+                    <Skeleton className="h-48 w-full" />
+                    <CardHeader>
+                        <Skeleton className="h-6 w-3/4" />
+                        <Skeleton className="h-4 w-full mt-2" />
+                    </CardHeader>
+                    <CardFooter>
+                        <Skeleton className="h-4 w-1/2" />
+                    </CardFooter>
+                </Card>
+             ))
+           ) : quotes.length > 0 ? (
+              quotes.map((quote) => (
+              <Card key={quote.id} className="overflow-hidden flex flex-col">
                 <div className="relative h-48 w-full bg-accent/50 flex items-center justify-center">
                   <span className="text-7xl">{quote.emoji}</span>
                 </div>
@@ -74,10 +99,13 @@ export default function ClientDashboard() {
                   <CardDescription>{quote.description}</CardDescription>
                 </CardHeader>
                 <CardFooter className="mt-auto">
-                  <p className="text-sm text-muted-foreground">Shared by the Mindset Theater Team</p>
+                  <p className="text-sm text-muted-foreground">Shared by {quote.authorName}</p>
                 </CardFooter>
               </Card>
-            ))}
+            ))
+           ) : (
+             <p className="text-muted-foreground text-center col-span-2">No inspiration shared yet. Check back later!</p>
+           )}
         </div>
       </div>
     </div>

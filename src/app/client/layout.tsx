@@ -8,12 +8,13 @@ import { usePathname, useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/logo";
-import { Bot, CalendarDays, LayoutGrid, LogOut, MessageCircle, User, Menu } from "lucide-react";
+import { Bot, CalendarDays, LayoutGrid, LogOut, MessageCircle, User, Menu, Phone, Mail, Instagram } from "lucide-react";
 import { useAuth } from '@/context/auth-context';
 import { auth, db } from '@/lib/firebase';
 import { signOut } from 'firebase/auth';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Separator } from '@/components/ui/separator';
 
 const NavLink = ({ href, isActive, children }: { href: string, isActive: boolean, children: React.ReactNode }) => (
     <Link href={href} className={`flex items-center gap-3 p-2 rounded-lg ${isActive ? 'bg-accent text-accent-foreground' : 'hover:bg-accent'}`}>
@@ -81,6 +82,22 @@ export default function ClientLayout({
                 <User /><span>Profile</span>
             </NavLink>
         </nav>
+         <div className="px-4 py-2 mt-4">
+            <Separator />
+            <p className="text-sm font-semibold text-muted-foreground mt-4 mb-2 px-2">Support</p>
+            <a href="tel:0766300886" className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent text-muted-foreground hover:text-accent-foreground text-sm">
+              <Phone className="h-4 w-4" />
+              <span>0766300886</span>
+            </a>
+            <a href="mailto:mindsettheater@gmail.com" className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent text-muted-foreground hover:text-accent-foreground text-sm">
+              <Mail className="h-4 w-4" />
+              <span>mindsettheater@gmail.com</span>
+            </a>
+            <a href="https://www.instagram.com/mindset_theater?igsh=NjB0aTA5Y3pybWZo" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent text-muted-foreground hover:text-accent-foreground text-sm">
+              <Instagram className="h-4 w-4" />
+              <span>Instagram</span>
+            </a>
+        </div>
         <div className="mt-auto space-y-4 p-4 border-t">
            <div className="flex items-center gap-3">
               <Avatar>
@@ -118,7 +135,7 @@ export default function ClientLayout({
                           <span className="sr-only">Open Menu</span>
                       </Button>
                   </SheetTrigger>
-                  <SheetContent side="left" className="p-0 w-64">
+                  <SheetContent side="left" className="p-0 w-72">
                     <SheetHeader>
                         <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
                     </SheetHeader>
