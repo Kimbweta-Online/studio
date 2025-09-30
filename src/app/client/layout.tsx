@@ -1,17 +1,25 @@
 
+
 "use client";
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/logo";
-import { Bot, CalendarDays, LayoutGrid, LogOut, MessageCircle, User } from "lucide-react";
+import { Bot, CalendarDays, LayoutGrid, LogOut, MessageCircle, User, Menu } from "lucide-react";
 import { useAuth } from '@/context/auth-context';
 import { auth, db } from '@/lib/firebase';
 import { signOut } from 'firebase/auth';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { Sheet, SheetContent, SheetHeader, SheetTrigger } from '@/components/ui/sheet';
+
+const NavLink = ({ href, isActive, children }: { href: string, isActive: boolean, children: React.ReactNode }) => (
+    <Link href={href} className={`flex items-center gap-3 p-2 rounded-lg ${isActive ? 'bg-accent text-accent-foreground' : 'hover:bg-accent'}`}>
+        {children}
+    </Link>
+);
 
 export default function ClientLayout({
   children,
@@ -21,6 +29,7 @@ export default function ClientLayout({
   const pathname = usePathname();
   const router = useRouter();
   const { user, loading } = useAuth();
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   const isActive = (path: string) => pathname.startsWith(path);
 
@@ -46,36 +55,33 @@ export default function ClientLayout({
         </div>
     )
   }
-
-  return (
-    <div className="flex min-h-screen">
-      <aside className="w-64 flex-shrink-0 border-r bg-background flex flex-col p-4">
-        <div className="flex items-center gap-2 mb-8">
+  
+  const navContent = (
+      <div className="flex flex-col h-full">
+        <div className="flex items-center gap-2 mb-8 px-4">
             <Logo />
             <span className="font-bold font-headline text-lg">
               Mindset Theater
             </span>
         </div>
-
-        <nav className="flex-1 space-y-2">
-            <Link href="/client/dashboard" className={`flex items-center gap-3 p-2 rounded-lg ${isActive("/client/dashboard") ? 'bg-accent text-accent-foreground' : 'hover:bg-accent'}`}>
+        <nav className="flex-1 space-y-2 px-4">
+            <NavLink href="/client/dashboard" isActive={isActive("/client/dashboard")}>
                 <LayoutGrid /><span>Dashboard</span>
-            </Link>
-            <Link href="/client/chat" className={`flex items-center gap-3 p-2 rounded-lg ${isActive("/client/chat") ? 'bg-accent text-accent-foreground' : 'hover:bg-accent'}`}>
+            </NavLink>
+            <NavLink href="/client/chat" isActive={isActive("/client/chat")}>
                 <MessageCircle /><span>Chats</span>
-            </Link>
-             <Link href="/client/ai-chat" className={`flex items-center gap-3 p-2 rounded-lg ${isActive("/client/ai-chat") ? 'bg-accent text-accent-foreground' : 'hover B-accent'}`}>
+            </NavLink>
+            <NavLink href="/client/ai-chat" isActive={isActive("/client/ai-chat")}>
                 <Bot /><span>Dr. Mindset</span>
-            </Link>
-             <Link href="/client/booking" className={`flex items-center gap-3 p-2 rounded-lg ${isActive("/client/booking") ? 'bg-accent text-accent-foreground' : 'hover:bg-accent'}`}>
+            </NavLink>
+            <NavLink href="/client/booking" isActive={isActive("/client/booking")}>
                 <CalendarDays /><span>Booking</span>
-            </Link>
-             <Link href="/client/profile" className={`flex items-center gap-3 p-2 rounded-lg ${isActive("/client/profile") ? 'bg-accent text-accent-foreground' : 'hover:bg-accent'}`}>
+            </NavLink>
+            <NavLink href="/client/profile" isActive={isActive("/client/profile")}>
                 <User /><span>Profile</span>
-            </Link>
+            </NavLink>
         </nav>
-
-        <div className="mt-auto space-y-4">
+        <div className="mt-auto space-y-4 p-4 border-t">
            <div className="flex items-center gap-3">
               <Avatar>
                   <AvatarImage src={user.photoURL || undefined} alt={user.displayName || "Client"} />
@@ -93,10 +99,30 @@ export default function ClientLayout({
               <span>Logout</span>
           </Button>
         </div>
+      </div>
+  );
+
+  return (
+    <div className="flex min-h-screen">
+      <aside className="w-64 flex-shrink-0 border-r bg-background hidden md:block">
+        {navContent}
       </aside>
       
       <div className="flex-1 flex flex-col">
-        <header className="flex items-center justify-end p-4 border-b bg-background sticky top-0 z-10 h-16">
+        <header className="flex items-center justify-between md:justify-end p-4 border-b bg-background sticky top-0 z-10 h-16">
+            <div className="md:hidden">
+              <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+                  <SheetTrigger asChild>
+                       <Button variant="ghost" size="icon">
+                          <Menu />
+                          <span className="sr-only">Open Menu</span>
+                      </Button>
+                  </SheetTrigger>
+                  <SheetContent side="left" className="p-0 w-64">
+                    {navContent}
+                  </SheetContent>
+              </Sheet>
+            </div>
            <div className="flex items-center gap-4">
               <p className="text-sm text-muted-foreground">Welcome back, {user.displayName || "Client"}!</p>
            </div>

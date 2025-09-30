@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -30,8 +31,8 @@ import {
 
 const generateTimeSlots = () => {
     const slots = [];
-    // from 8 AM (Saa mbili asubuhi) to 9 PM (Saa tatu usiku) to allow for 1-hour sessions before 10 PM
-    for (let i = 8; i <= 21; i++) { 
+    // from 8 AM to 5 PM (17:00)
+    for (let i = 8; i <= 17; i++) { 
         slots.push(`${i.toString().padStart(2, '0')}:00`);
     }
     return slots;
@@ -261,16 +262,6 @@ export default function ClientBookingPage() {
                     )}
                 </CardContent>
                 <CardFooter className="flex-col items-stretch space-y-2">
-                     <Button asChild>
-                        <a href={`tel:${therapist.phone}`}>
-                            <Phone className="mr-2 h-4 w-4" /> Call Now
-                        </a>
-                    </Button>
-                    <Button asChild variant="secondary">
-                        <Link href={`/client/chat/${therapist.id}`}>
-                            <MessageCircle className="mr-2 h-4 w-4" /> Chat Now
-                        </Link>
-                    </Button>
                     <Dialog onOpenChange={(open) => {
                         if (open) {
                             setCurrentTherapist(therapist);
@@ -286,7 +277,7 @@ export default function ClientBookingPage() {
                     <DialogContent className="max-w-sm sm:max-w-md">
                         <DialogHeader>
                         <DialogTitle className="font-headline">Schedule with {therapist.name}</DialogTitle>
-                        <DialogDescription>Select a date, time, and duration for your session. (Mon-Sat, 8am-10pm)</DialogDescription>
+                        <DialogDescription>Select a date, time, and duration for your session. (Mon-Sat, 8am-5pm)</DialogDescription>
                         </DialogHeader>
                         <div className="grid gap-4 py-4">
                             <div className="flex justify-center">
@@ -379,7 +370,7 @@ export default function ClientBookingPage() {
             const therapist = therapists.find(t => t.id === booking.therapistId);
             return (
               <Card key={booking.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 gap-4">
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 flex-1">
                     <Avatar>
                         <AvatarImage src={therapist?.avatarUrl || undefined} alt={therapist?.name} />
                         <AvatarFallback className="bg-secondary">{therapist?.avatar || '🧑‍⚕️'}</AvatarFallback>
@@ -394,9 +385,16 @@ export default function ClientBookingPage() {
                 </div>
                 <div className="flex items-center gap-2 self-end sm:self-center">
                     <Badge variant={getStatusVariant(booking.status)}>{booking.status}</Badge>
-                    <Button variant="outline" size="icon" asChild>
-                        <a href={`tel:${therapist?.phone}`}><Phone className="h-4 w-4" /></a>
-                    </Button>
+                    {booking.status === 'Confirmed' && therapist && (
+                        <>
+                            <Button variant="outline" size="icon" asChild>
+                                <a href={`tel:${therapist.phone}`}><Phone className="h-4 w-4" /></a>
+                            </Button>
+                             <Button variant="outline" size="icon" asChild>
+                                <Link href={`/client/chat/${therapist.id}`}><MessageCircle className="h-4 w-4" /></Link>
+                            </Button>
+                        </>
+                    )}
                     <Button variant="destructive" size="icon" onClick={() => handleCancel(booking.id)}>
                         <Trash2 className="h-4 w-4" />
                     </Button>
@@ -415,5 +413,3 @@ export default function ClientBookingPage() {
     </div>
   );
 }
-
-    
