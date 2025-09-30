@@ -55,27 +55,4 @@ export type ChatMessage = {
 
 // The static arrays (therapists, quotes, bookings, clients) have been removed.
 // The application will now fetch this data from Firebase Firestore.
-export const quotes: Omit<Quote, 'id' | 'authorId' | 'authorName' | 'createdAt'>[] = [
-  { 
-    title: 'The Power of Yet', 
-    description: "Embracing challenges is a step towards growth. Instead of 'I can't do it,' try 'I can't do it... yet.'", 
-    emoji: '🌱', 
-  },
-  { 
-    title: 'Breathe in, Breathe out', 
-    description: "Your breath is your anchor. In moments of chaos, return to the simple rhythm of your breath.", 
-    emoji: '🧘', 
-  },
-  { 
-    title: 'Connection is Key', 
-    description: "Healing happens in connection. Reach out, share, and listen. You are not alone.", 
-    emoji: '🤝', 
-  },
-   { 
-    title: 'Small Steps Forward', 
-    description: "Progress isn't always a giant leap. Celebrate the small steps you take each day.", 
-    emoji: '👟', 
-  },
-];
-
-    
+export const quotes: Omit<Quote, 'id' | 'authorId' | 'authorName' | 'createdAt'>[] = [];
