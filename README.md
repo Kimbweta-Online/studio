@@ -17,7 +17,7 @@ Mindset Theater is a comprehensive mental health support application designed to
 ## Project Link
 You can view the project here:
 
-https://studio--mindful-journey-k1zhu.us-central1.hosted.app
+https://studio--mindset-theater-k1zhu.us-central1.hosted.app
 
 
 ## Getting Started
@@ -30,3 +30,4 @@ https://studio--mindful-journey-k1zhu.us-central1.hosted.app
 3.  **Install dependencies and run the development server:**
 
 This project is a NextJS starter in Firebase Studio. To begin exploring the code, start by examining the files in the `/src` directory, particularly `src/app/page.tsx`.
+
