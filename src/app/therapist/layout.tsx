@@ -13,7 +13,7 @@ import { useAuth } from '@/context/auth-context';
 import { auth, db } from '@/lib/firebase';
 import { signOut } from 'firebase/auth';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 
 const NavLink = ({ href, isActive, children }: { href: string, isActive: boolean, children: React.ReactNode }) => (
     <Link href={href} className={`flex items-center gap-3 p-2 rounded-lg ${isActive ? 'bg-accent text-accent-foreground' : 'hover:bg-accent'}`}>
@@ -74,7 +74,7 @@ export default function TherapistLayout({
 
   const navContent = (
       <div className="flex flex-col h-full">
-        <div className="flex items-center gap-2 mb-8 px-4">
+        <div className="flex items-center gap-2 mb-8 px-4 pt-4">
             <Logo />
             <span className="font-bold font-headline text-lg">
               Mindset Theater
@@ -132,6 +132,9 @@ export default function TherapistLayout({
                       </Button>
                   </SheetTrigger>
                   <SheetContent side="left" className="p-0 w-64">
+                    <SheetHeader>
+                        <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+                    </SheetHeader>
                     {navContent}
                   </SheetContent>
               </Sheet>
