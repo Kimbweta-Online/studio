@@ -16,10 +16,27 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 
+const positiveQuotes = [
+    "Keep shining! Your positivity is a beacon.",
+    "You're on the right track. Your positive mindset is creating a wonderful reality.",
+    "Flourishing looks good on you! Keep up the great work.",
+    "Your positive energy is contagious. Keep spreading the light!",
+];
+
+const encouragingQuotes = [
+    "Every day is a new beginning. Take a deep breath and start again.",
+    "A small positive thought in the morning can change your whole day.",
+    "You are stronger than you think. Keep focusing on the good.",
+    "The journey of a thousand miles begins with a single step. You've got this.",
+];
+
+
 export default function ClientDashboard() {
   const { user } = useAuth();
   const [losadaData, setLosadaData] = useState<{ ratio: number; positive: number; negative: number; neutral: number } | null>(null);
   const [loadingRatio, setLoadingRatio] = useState(true);
+  const [quote, setQuote] = useState<string>("");
+
 
   useEffect(() => {
     const calculateLosadaRatio = async () => {
@@ -45,6 +62,7 @@ export default function ClientDashboard() {
         
         if (clientMessages.length < 5) {
             setLosadaData({ ratio: 0, positive: 0, negative: 0, neutral: 0 });
+            setQuote("Start a conversation with a therapist to see your positivity ratio.");
             return;
         }
 
@@ -64,6 +82,12 @@ export default function ClientDashboard() {
           negative: counts.negative,
           neutral: counts.neutral,
         });
+
+        if (ratio >= 3) {
+            setQuote(positiveQuotes[Math.floor(Math.random() * positiveQuotes.length)]);
+        } else {
+            setQuote(encouragingQuotes[Math.floor(Math.random() * encouragingQuotes.length)]);
+        }
 
       } catch (error) {
         console.error("Error calculating Losada ratio:", error);
@@ -134,7 +158,7 @@ export default function ClientDashboard() {
                         <Skeleton className="h-4 w-full" />
                    </div>
                 ) : losadaData ? (
-                  losadaData.positive + losadaData.negative === 0 ? (
+                  losadaData.positive + losadaData.negative + losadaData.neutral < 5 ? (
                      <div className="text-center text-muted-foreground py-6">
                         <p>Not enough chat data to calculate a ratio. Start a conversation with a therapist!</p>
                      </div>
@@ -160,8 +184,8 @@ export default function ClientDashboard() {
                             </div>
                             <Progress value={(losadaData.neutral / (losadaData.positive + losadaData.negative + losadaData.neutral)) * 100} className="h-2" />
                         </div>
-                        <p className="text-xs text-muted-foreground text-center mt-2">
-                            {losadaData.ratio >= 3 ? "You're in a flourishing state of mind!" : "Keep focusing on positive interactions to improve your well-being."}
+                        <p className="text-xs text-muted-foreground text-center italic mt-2">
+                           "{quote}"
                         </p>
                     </div>
                   )
