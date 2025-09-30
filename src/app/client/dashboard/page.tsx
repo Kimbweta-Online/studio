@@ -78,10 +78,15 @@ export default function ClientDashboard() {
            {loadingQuotes ? (
              Array.from({ length: 2 }).map((_, index) => (
                 <Card key={index}>
-                    <Skeleton className="h-48 w-full" />
                     <CardHeader>
-                        <Skeleton className="h-6 w-3/4" />
-                        <Skeleton className="h-4 w-full mt-2" />
+                       <div className="flex items-start gap-4">
+                          <Skeleton className="h-10 w-10 mt-1" />
+                          <div className="space-y-2 flex-1">
+                            <Skeleton className="h-6 w-3/4" />
+                            <Skeleton className="h-4 w-full" />
+                            <Skeleton className="h-4 w-full" />
+                          </div>
+                       </div>
                     </CardHeader>
                     <CardFooter>
                         <Skeleton className="h-4 w-1/2" />
@@ -91,14 +96,16 @@ export default function ClientDashboard() {
            ) : quotes.length > 0 ? (
               quotes.map((quote) => (
               <Card key={quote.id} className="overflow-hidden flex flex-col">
-                <div className="relative h-48 w-full bg-accent/50 flex items-center justify-center">
-                  <span className="text-7xl">{quote.emoji}</span>
-                </div>
                 <CardHeader>
-                  <CardTitle className="font-headline">{quote.title}</CardTitle>
-                  <CardDescription>{quote.description}</CardDescription>
+                   <div className="flex items-start gap-4">
+                      <span className="text-4xl mt-1">{quote.emoji}</span>
+                      <div>
+                          <CardTitle className="font-headline">{quote.title}</CardTitle>
+                          <CardDescription>{quote.description}</CardDescription>
+                      </div>
+                   </div>
                 </CardHeader>
-                <CardFooter className="mt-auto">
+                <CardFooter className="mt-auto bg-muted/50 p-3">
                   <p className="text-sm text-muted-foreground">Shared by {quote.authorName}</p>
                 </CardFooter>
               </Card>

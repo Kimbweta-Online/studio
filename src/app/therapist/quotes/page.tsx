@@ -55,15 +55,18 @@ export default function TherapistQuotesPage() {
           orderBy('createdAt', 'desc')
         );
         const querySnapshot = await getDocs(q);
-        const userQuotes = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-          createdAt: (doc.data().createdAt as Timestamp).toDate(),
-        } as Quote));
+        const userQuotes = querySnapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+                id: doc.id,
+                ...data,
+                createdAt: data.createdAt ? (data.createdAt as Timestamp).toDate() : new Date(),
+            } as Quote;
+        });
         setQuotes(userQuotes);
       } catch (error) {
         console.error("Error fetching quotes:", error);
-        toast({ variant: 'destructive', title: 'Error', description: 'Could not fetch your quotes.' });
+        toast({ variant: 'destructive', title: 'Error', description: 'Could not fetch your quotes. The database may be missing an index.' });
       } finally {
         setLoading(false);
       }
@@ -79,7 +82,7 @@ export default function TherapistQuotesPage() {
             // Update existing quote
             const quoteRef = doc(db, "quotes", editingQuote.id);
             await updateDoc(quoteRef, values);
-            setQuotes(prev => prev.map(q => q.id === editingQuote.id ? {...q, ...values} : q));
+            setQuotes(prev => prev.map(q => q.id === editingQuote.id ? {...q, ...values, createdAt: q.createdAt} : q));
             toast({ title: 'Success', description: 'Quote updated successfully.' });
         } else {
             // Add new quote
@@ -90,13 +93,12 @@ export default function TherapistQuotesPage() {
                 createdAt: serverTimestamp(),
             };
             const docRef = await addDoc(collection(db, 'quotes'), newQuoteData);
-            // We need to re-fetch or optimistically update. Optimistic is better for UX.
-             const addedQuote: Quote = {
+            const addedQuote: Quote = {
                 id: docRef.id,
                 ...values,
                 authorId: user.uid,
                 authorName: user.displayName || 'Anonymous',
-                createdAt: new Date() as any, // This is an approximation
+                createdAt: new Date() as any, // This is an approximation for optimistic update
             };
             setQuotes(prev => [addedQuote, ...prev]);
             toast({ title: 'Success', description: 'Quote added successfully.' });
@@ -226,7 +228,7 @@ export default function TherapistQuotesPage() {
             </Card>
           ))
         ) : (
-          <p className="text-muted-foreground col-span-full text-center">You haven't shared any quotes yet.</p>
+          <p className="text-muted-foreground col-span-full text-center py-10">You haven't shared any quotes yet. Click "Add Quote" to inspire your clients.</p>
         )}
       </div>
 
