@@ -3,14 +3,14 @@
 
 import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
-import { collection, getDocs, doc, updateDoc } from "firebase/firestore";
+import { collection, getDocs, doc, updateDoc, deleteDoc } from "firebase/firestore";
 import type { User, Booking } from "@/lib/data";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Users, Calendar, CheckCircle, Clock, MessageSquare, UserCheck } from "lucide-react";
+import { Users, Calendar, CheckCircle, Clock, MessageSquare, UserCheck, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,6 +20,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 
 export default function AdminDashboardPage() {
@@ -27,6 +40,8 @@ export default function AdminDashboardPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -76,6 +91,45 @@ export default function AdminDashboardPage() {
             });
         }
     };
+
+    const handleDeleteUser = async () => {
+      if (!userToDelete || deleteConfirmation !== "DELETE") {
+        toast({
+          variant: "destructive",
+          title: "Confirmation Failed",
+          description: "Please type 'DELETE' to confirm deletion.",
+        });
+        return;
+      }
+      try {
+        // Delete user from Firestore
+        await deleteDoc(doc(db, "users", userToDelete.id));
+
+        // Note: Deleting a user from Firebase Auth requires a backend function (e.g., Cloud Function)
+        // for security reasons. This implementation only removes them from Firestore.
+        // A real-world app would call a Cloud Function here to delete the Auth user.
+
+        setUsers(prevUsers => prevUsers.filter(u => u.id !== userToDelete.id));
+        
+        toast({
+          title: "User Deleted",
+          description: `User ${userToDelete.name} has been removed from Firestore.`,
+        });
+
+      } catch (error) {
+        console.error("Error deleting user:", error);
+        toast({
+          variant: "destructive",
+          title: "Deletion Failed",
+          description: "Could not delete the user.",
+        });
+      } finally {
+        setUserToDelete(null);
+        setDeleteConfirmation("");
+        // Close the dialog
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+      }
+  };
 
   const clients = users.filter(u => u.role === 'client');
   const therapists = users.filter(u => u.role === 'therapist');
@@ -192,12 +246,12 @@ export default function AdminDashboardPage() {
                                     <TableCell className="text-center">
                                         <Badge variant={getRegistrationStatusVariant(therapist.registrationStatus)}>{therapist.registrationStatus || 'Pending'}</Badge>
                                     </TableCell>
-                                    <TableCell className="text-right">
+                                    <TableCell className="text-right flex items-center justify-end gap-2">
                                          <Select 
                                             defaultValue={therapist.registrationStatus}
                                             onValueChange={(newStatus: User['registrationStatus']) => handleStatusChange(therapist.id, newStatus)}
                                         >
-                                            <SelectTrigger className="w-[120px] ml-auto">
+                                            <SelectTrigger className="w-[120px]">
                                                 <SelectValue placeholder="Update" />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -206,6 +260,13 @@ export default function AdminDashboardPage() {
                                                 <SelectItem value="Denied">Denied</SelectItem>
                                             </SelectContent>
                                         </Select>
+                                        <AlertDialog>
+                                            <AlertDialogTrigger asChild>
+                                                <Button variant="destructive" size="icon" onClick={() => setUserToDelete(therapist)}>
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </AlertDialogTrigger>
+                                        </AlertDialog>
                                     </TableCell>
                                 </TableRow>
                             ))
@@ -264,13 +325,22 @@ export default function AdminDashboardPage() {
                                         </Badge>
                                     </TableCell>
                                     <TableCell>{user.email}</TableCell>
-                                     <TableCell className="text-right">
+                                     <TableCell className="text-right flex items-center justify-end gap-2">
                                         {user.role === 'client' && (
-                                            <Button variant="outline" size="icon" asChild>
-                                                <Link href={`/admin/users/${user.id}`}>
-                                                    <MessageSquare className="h-4 w-4" />
-                                                </Link>
-                                            </Button>
+                                            <>
+                                                <Button variant="outline" size="icon" asChild>
+                                                    <Link href={`/admin/users/${user.id}`}>
+                                                        <MessageSquare className="h-4 w-4" />
+                                                    </Link>
+                                                </Button>
+                                                <AlertDialog>
+                                                    <AlertDialogTrigger asChild>
+                                                        <Button variant="destructive" size="icon" onClick={() => setUserToDelete(user)}>
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    </AlertDialogTrigger>
+                                                </AlertDialog>
+                                            </>
                                         )}
                                     </TableCell>
                                 </TableRow>
@@ -280,6 +350,38 @@ export default function AdminDashboardPage() {
                 </Table>
             </CardContent>
         </Card>
+
+        {userToDelete && (
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        This action cannot be undone. This will permanently delete the user account for <span className="font-bold">{userToDelete.name}</span> and remove their data from our servers. 
+                        To confirm, please type <span className="font-bold text-destructive">DELETE</span> below.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <div className="space-y-2">
+                    <Label htmlFor="delete-confirm">Confirmation</Label>
+                    <Input 
+                        id="delete-confirm"
+                        value={deleteConfirmation}
+                        onChange={(e) => setDeleteConfirmation(e.target.value)}
+                        placeholder="DELETE"
+                        className="border-destructive focus-visible:ring-destructive"
+                    />
+                </div>
+                <AlertDialogFooter>
+                    <AlertDialogCancel onClick={() => { setUserToDelete(null); setDeleteConfirmation(""); }}>Cancel</AlertDialogCancel>
+                    <AlertDialogAction 
+                        onClick={handleDeleteUser}
+                        disabled={deleteConfirmation !== 'DELETE'}
+                        className="bg-destructive hover:bg-destructive/90"
+                    >
+                        Delete User
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        )}
     </div>
   );
 }
