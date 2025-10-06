@@ -85,18 +85,20 @@ export default function TherapistQuotesPage() {
 
     const form = event.currentTarget;
     const text = (form.elements.namedItem("text") as HTMLTextAreaElement).value;
+    const emoji = (form.elements.namedItem("emoji") as HTMLInputElement).value;
 
     try {
       if (currentQuote) {
         // Update existing quote
         const quoteRef = doc(db, "quotes", currentQuote.id);
-        await updateDoc(quoteRef, { text });
-        setQuotes(quotes.map(q => q.id === currentQuote.id ? { ...q, text } : q));
+        await updateDoc(quoteRef, { text, emoji });
+        setQuotes(quotes.map(q => q.id === currentQuote.id ? { ...q, text, emoji } : q));
         toast({ title: "Quote Updated" });
       } else {
         // Add new quote
         const newQuoteData = {
           text,
+          emoji,
           authorName: user.displayName || "Therapist",
           authorId: user.uid,
           createdAt: serverTimestamp(),
@@ -169,9 +171,12 @@ export default function TherapistQuotesPage() {
             ) : quotes.length > 0 ? (
               quotes.map(quote => (
                 <Card key={quote.id} className="p-4 flex justify-between items-start gap-4">
-                  <div className="flex-1">
-                    <blockquote className="italic text-lg">"{quote.text}"</blockquote>
-                    <p className="text-sm text-muted-foreground mt-2">- {quote.authorName}</p>
+                  <div className="flex items-start gap-4 flex-1">
+                    {quote.emoji && <span className="text-2xl mt-1">{quote.emoji}</span>}
+                    <div className="flex-1">
+                        <blockquote className="italic text-lg">"{quote.text}"</blockquote>
+                        <p className="text-sm text-muted-foreground mt-2">- {quote.authorName}</p>
+                    </div>
                   </div>
                   <div className="flex gap-2">
                     <Button variant="outline" size="icon" onClick={() => handleOpenDialog(quote)}>
@@ -205,15 +210,27 @@ export default function TherapistQuotesPage() {
           </DialogHeader>
           <form onSubmit={handleSubmit}>
             <div className="grid gap-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="text">Quote Text</Label>
-                <Textarea
-                  id="text"
-                  name="text"
-                  rows={4}
-                  defaultValue={currentQuote?.text || ""}
-                  required
-                />
+              <div className="grid grid-cols-[auto_1fr] items-start gap-4">
+                <div className="space-y-2">
+                    <Label htmlFor="emoji">Emoji</Label>
+                    <Input
+                    id="emoji"
+                    name="emoji"
+                    defaultValue={currentQuote?.emoji || ""}
+                    className="w-20 text-center text-2xl p-1"
+                    maxLength={2}
+                    />
+                </div>
+                <div className="space-y-2 w-full">
+                    <Label htmlFor="text">Quote Text</Label>
+                    <Textarea
+                    id="text"
+                    name="text"
+                    rows={3}
+                    defaultValue={currentQuote?.text || ""}
+                    required
+                    />
+                </div>
               </div>
             </div>
             <DialogFooter>

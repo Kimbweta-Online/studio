@@ -46,6 +46,7 @@ export type ChatMessage = {
 export type Quote = {
     id: string;
     text: string;
+    emoji?: string;
     authorName: string; // Name of the therapist or admin who created it
     authorId: string;
     createdAt: Timestamp;

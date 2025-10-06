@@ -150,6 +150,7 @@ export default function ClientDashboard() {
                         {quotes.map((q) => (
                             <CarouselItem key={q.id}>
                                 <div className="p-1 text-center">
+                                    {q.emoji && <p className="text-4xl mb-2">{q.emoji}</p>}
                                     <blockquote className="text-lg font-semibold italic">"{q.text}"</blockquote>
                                     <p className="text-sm text-muted-foreground mt-2">- {q.authorName}</p>
                                 </div>
