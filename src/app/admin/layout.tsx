@@ -7,7 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/logo";
-import { LayoutGrid, LogOut } from "lucide-react";
+import { LayoutGrid, LogOut, Quote } from "lucide-react";
 import { useAuth } from '@/context/auth-context';
 import { auth, db } from '@/lib/firebase';
 import { signOut } from 'firebase/auth';
@@ -75,6 +75,9 @@ export default function AdminLayout({
         <nav className="flex-1 space-y-2">
             <Link href="/admin/dashboard" className={`flex items-center gap-3 p-2 rounded-lg ${isActive("/admin/dashboard") ? 'bg-accent text-accent-foreground' : 'hover:bg-accent'}`}>
                 <LayoutGrid /><span>Dashboard</span>
+            </Link>
+            <Link href="/admin/quotes" className={`flex items-center gap-3 p-2 rounded-lg ${isActive("/admin/quotes") ? 'bg-accent text-accent-foreground' : 'hover:bg-accent'}`}>
+                <Quote /><span>Quotes</span>
             </Link>
         </nav>
 

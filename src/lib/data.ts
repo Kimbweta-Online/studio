@@ -42,3 +42,11 @@ export type ChatMessage = {
     imageUrl?: string;
     voiceUrl?: string;
 }
+
+export type Quote = {
+    id: string;
+    text: string;
+    authorName: string; // Name of the therapist or admin who created it
+    authorId: string;
+    createdAt: Timestamp;
+}

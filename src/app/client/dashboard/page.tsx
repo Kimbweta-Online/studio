@@ -4,17 +4,26 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Bot, Info } from 'lucide-react';
+import { Bot, Info, Quote as QuoteIcon } from 'lucide-react';
 import { Player } from '@lottiefiles/react-lottie-player';
 import { useAuth } from '@/context/auth-context';
 import { db } from '@/lib/firebase';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
-import type { ChatMessage } from '@/lib/data';
+import type { ChatMessage, Quote } from '@/lib/data';
 import { analyzeSentiment } from '@/ai/flows/analyze-sentiment';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import Autoplay from "embla-carousel-autoplay";
+
 
 const positiveQuotes = [
     "Keep shining! Your positivity is a beacon.",
@@ -36,6 +45,8 @@ export default function ClientDashboard() {
   const [losadaData, setLosadaData] = useState<{ ratio: number; positive: number; negative: number; neutral: number } | null>(null);
   const [loadingRatio, setLoadingRatio] = useState(true);
   const [quote, setQuote] = useState<string>("");
+  const [quotes, setQuotes] = useState<Quote[]>([]);
+  const [loadingQuotes, setLoadingQuotes] = useState(true);
 
 
   useEffect(() => {
@@ -95,8 +106,23 @@ export default function ClientDashboard() {
         setLoadingRatio(false);
       }
     };
+    
+     const fetchQuotes = async () => {
+      setLoadingQuotes(true);
+      try {
+        const q = query(collection(db, "quotes"), orderBy("createdAt", "desc"));
+        const querySnapshot = await getDocs(q);
+        const quotesList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Quote));
+        setQuotes(quotesList);
+      } catch (error) {
+        console.error("Error fetching quotes: ", error);
+      } finally {
+        setLoadingQuotes(false);
+      }
+    };
 
     calculateLosadaRatio();
+    fetchQuotes();
   }, [user]);
     
   return (
@@ -105,6 +131,42 @@ export default function ClientDashboard() {
         <h1 className="text-3xl font-bold font-headline">Client Dashboard</h1>
         <p className="text-muted-foreground">Your space for growth and support.</p>
       </div>
+      
+       <Card>
+          <CardHeader>
+              <CardTitle className="font-headline">Daily Inspiration</CardTitle>
+              <CardDescription>A dose of motivation for your day.</CardDescription>
+          </CardHeader>
+          <CardContent>
+              {loadingQuotes ? (
+                  <Skeleton className="h-24 w-full" />
+              ) : quotes.length > 0 ? (
+                  <Carousel
+                    plugins={[Autoplay({ delay: 5000 })]}
+                    className="w-full"
+                    opts={{ loop: true }}
+                   >
+                    <CarouselContent>
+                        {quotes.map((q) => (
+                            <CarouselItem key={q.id}>
+                                <div className="p-1 text-center">
+                                    <blockquote className="text-lg font-semibold italic">"{q.text}"</blockquote>
+                                    <p className="text-sm text-muted-foreground mt-2">- {q.authorName}</p>
+                                </div>
+                            </CarouselItem>
+                        ))}
+                    </CarouselContent>
+                    <CarouselPrevious className="absolute left-0 top-1/2 -translate-y-1/2" />
+                    <CarouselNext className="absolute right-0 top-1/2 -translate-y-1/2" />
+                 </Carousel>
+              ) : (
+                <div className="text-center text-muted-foreground py-6">
+                    <QuoteIcon className="mx-auto h-8 w-8 mb-2" />
+                    <p>No inspirational quotes available at the moment.</p>
+                </div>
+              )}
+          </CardContent>
+       </Card>
 
        <div className="grid lg:grid-cols-2 gap-8">
           <Card className="bg-primary/10 border-primary/20 shadow-lg">
