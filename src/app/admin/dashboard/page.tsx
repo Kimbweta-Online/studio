@@ -29,6 +29,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -156,8 +157,6 @@ export default function AdminDashboardPage() {
       } finally {
         setUserToDelete(null);
         setDeleteConfirmation("");
-        // Close the dialog
-        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
       }
   };
 
@@ -382,39 +381,40 @@ export default function AdminDashboardPage() {
         </Card>
 
         {userToDelete && (
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        This action cannot be undone. This will permanently delete the user account for <span className="font-bold">{userToDelete.name}</span> and remove all associated data (bookings, chats, etc.) from the servers. 
-                        To confirm, please type <span className="font-bold text-destructive">DELETE</span> below.
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <div className="space-y-2">
-                    <Label htmlFor="delete-confirm">Confirmation</Label>
-                    <Input 
-                        id="delete-confirm"
-                        value={deleteConfirmation}
-                        onChange={(e) => setDeleteConfirmation(e.target.value)}
-                        placeholder="DELETE"
-                        className="border-destructive focus-visible:ring-destructive"
-                    />
-                </div>
-                <AlertDialogFooter>
-                    <AlertDialogCancel onClick={() => { setUserToDelete(null); setDeleteConfirmation(""); }}>Cancel</AlertDialogCancel>
-                    <AlertDialogAction 
-                        onClick={handleDeleteUser}
-                        disabled={deleteConfirmation !== 'DELETE'}
-                        className="bg-destructive hover:bg-destructive/90"
-                    >
-                        Delete User
-                    </AlertDialogAction>
-                </AlertDialogFooter>
-            </AlertDialogContent>
+            <AlertDialog open={!!userToDelete} onOpenChange={(open) => !open && setUserToDelete(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete the user account for <span className="font-bold">{userToDelete.name}</span> and remove all associated data (bookings, chats, etc.) from the servers. 
+                            To confirm, please type <span className="font-bold text-destructive">DELETE</span> below.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <div className="space-y-2">
+                        <Label htmlFor="delete-confirm">Confirmation</Label>
+                        <Input 
+                            id="delete-confirm"
+                            value={deleteConfirmation}
+                            onChange={(e) => setDeleteConfirmation(e.target.value)}
+                            placeholder="DELETE"
+                            className="border-destructive focus-visible:ring-destructive"
+                        />
+                    </div>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => { setUserToDelete(null); setDeleteConfirmation(""); }}>Cancel</AlertDialogCancel>
+                        <AlertDialogAction 
+                            onClick={handleDeleteUser}
+                            disabled={deleteConfirmation !== 'DELETE'}
+                            className="bg-destructive hover:bg-destructive/90"
+                        >
+                            Delete User
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         )}
     </div>
   );
 }
-
 
     
