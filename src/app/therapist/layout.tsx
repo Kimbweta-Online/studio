@@ -8,7 +8,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/logo";
-import { CalendarCheck, LayoutGrid, LogOut, MessageCircle, User, Menu, Mic, Phone, Mail, Instagram } from "lucide-react";
+import { CalendarCheck, LayoutGrid, LogOut, MessageCircle, User, Menu, Quote, Phone, Mail, Instagram } from "lucide-react";
 import { useAuth } from '@/context/auth-context';
 import { auth, db } from '@/lib/firebase';
 import { signOut } from 'firebase/auth';
@@ -90,6 +90,9 @@ export default function TherapistLayout({
             </NavLink>
             <NavLink href="/therapist/booking" isActive={isActive("/therapist/booking")}>
                 <CalendarCheck /><span>Bookings</span>
+            </NavLink>
+            <NavLink href="/therapist/quotes" isActive={isActive("/therapist/quotes")}>
+                <Quote /><span>Quotes</span>
             </NavLink>
             <NavLink href="/therapist/profile" isActive={isActive("/therapist/profile")}>
                 <User /><span>Profile</span>
