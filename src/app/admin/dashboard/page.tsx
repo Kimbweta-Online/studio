@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
-import { collection, getDocs, doc, updateDoc, deleteDoc } from "firebase/firestore";
+import { collection, getDocs, doc, updateDoc, deleteDoc, query, where, writeBatch } from "firebase/firestore";
 import type { User, Booking } from "@/lib/data";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -29,7 +29,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -102,26 +101,57 @@ export default function AdminDashboardPage() {
         return;
       }
       try {
-        // Delete user from Firestore
-        await deleteDoc(doc(db, "users", userToDelete.id));
+        const batch = writeBatch(db);
 
-        // Note: Deleting a user from Firebase Auth requires a backend function (e.g., Cloud Function)
-        // for security reasons. This implementation only removes them from Firestore.
-        // A real-world app would call a Cloud Function here to delete the Auth user.
+        // 1. Delete associated data
+        const userId = userToDelete.id;
 
-        setUsers(prevUsers => prevUsers.filter(u => u.id !== userToDelete.id));
+        // Delete bookings
+        const clientBookingsQuery = query(collection(db, 'bookings'), where('clientId', '==', userId));
+        const therapistBookingsQuery = query(collection(db, 'bookings'), where('therapistId', '==', userId));
+        const [clientBookingsSnapshot, therapistBookingsSnapshot] = await Promise.all([getDocs(clientBookingsQuery), getDocs(therapistBookingsQuery)]);
+        clientBookingsSnapshot.forEach(doc => batch.delete(doc.ref));
+        therapistBookingsSnapshot.forEach(doc => batch.delete(doc.ref));
+        
+        // Delete AI chats (if client)
+        if (userToDelete.role === 'client') {
+            const aiChatsQuery = query(collection(db, 'ai_chats'), where('userId', '==', userId));
+            const aiChatsSnapshot = await getDocs(aiChatsQuery);
+            aiChatsSnapshot.forEach(doc => batch.delete(doc.ref));
+        }
+
+        // Delete user's participation in chats
+        const chatsQuery = query(collection(db, 'chats'), where('participants', 'array-contains', userId));
+        const chatsSnapshot = await getDocs(chatsQuery);
+        for (const chatDoc of chatsSnapshot.docs) {
+            // Delete messages subcollection
+            const messagesQuery = query(collection(chatDoc.ref, 'messages'));
+            const messagesSnapshot = await getDocs(messagesQuery);
+            messagesSnapshot.forEach(msgDoc => batch.delete(msgDoc.ref));
+            // Delete the chat document itself
+            batch.delete(chatDoc.ref);
+        }
+
+        // 2. Delete user document
+        const userRef = doc(db, "users", userId);
+        batch.delete(userRef);
+
+        // Commit the batch
+        await batch.commit();
+
+        setUsers(prevUsers => prevUsers.filter(u => u.id !== userId));
         
         toast({
-          title: "User Deleted",
-          description: `User ${userToDelete.name} has been removed from Firestore.`,
+          title: "User and Data Deleted",
+          description: `User ${userToDelete.name} and all their associated data have been removed.`,
         });
 
       } catch (error) {
-        console.error("Error deleting user:", error);
+        console.error("Error deleting user and associated data:", error);
         toast({
           variant: "destructive",
           title: "Deletion Failed",
-          description: "Could not delete the user.",
+          description: "Could not delete the user and their data.",
         });
       } finally {
         setUserToDelete(null);
@@ -226,7 +256,7 @@ export default function AdminDashboardPage() {
                                     <TableCell><Skeleton className="h-4 w-40" /></TableCell>
                                     <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                                     <TableCell><Skeleton className="h-6 w-24 mx-auto" /></TableCell>
-                                    <TableCell><Skeleton className="h-9 w-28 ml-auto" /></TableCell>
+                                    <TableCell><div className="flex justify-end gap-2"><Skeleton className="h-9 w-28" /><Skeleton className="h-9 w-9" /></div></TableCell>
                                 </TableRow>
                             ))
                         ) : (
@@ -299,7 +329,7 @@ export default function AdminDashboardPage() {
                                     <TableCell><Skeleton className="h-6 w-20" /></TableCell>
                                     <TableCell><Skeleton className="h-6 w-24" /></TableCell>
                                     <TableCell><Skeleton className="h-4 w-40" /></TableCell>
-                                    <TableCell><Skeleton className="h-9 w-9 ml-auto" /></TableCell>
+                                    <TableCell><div className="flex justify-end gap-2"><Skeleton className="h-9 w-9" /><Skeleton className="h-9 w-9" /></div></TableCell>
                                 </TableRow>
                             ))
                         ) : (
@@ -356,7 +386,7 @@ export default function AdminDashboardPage() {
                 <AlertDialogHeader>
                     <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        This action cannot be undone. This will permanently delete the user account for <span className="font-bold">{userToDelete.name}</span> and remove their data from our servers. 
+                        This action cannot be undone. This will permanently delete the user account for <span className="font-bold">{userToDelete.name}</span> and remove all associated data (bookings, chats, etc.) from the servers. 
                         To confirm, please type <span className="font-bold text-destructive">DELETE</span> below.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
@@ -385,5 +415,6 @@ export default function AdminDashboardPage() {
     </div>
   );
 }
+
 
     
