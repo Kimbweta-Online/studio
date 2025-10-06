@@ -8,7 +8,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/logo";
-import { CalendarCheck, LayoutGrid, LogOut, MessageCircle, User, Menu, Quote, Phone, Mail, Instagram } from "lucide-react";
+import { CalendarCheck, LayoutGrid, LogOut, MessageCircle, User, Menu, Quote, Phone, Mail, Instagram, MessageSquare } from "lucide-react";
 import { useAuth } from '@/context/auth-context';
 import { auth, db } from '@/lib/firebase';
 import { signOut } from 'firebase/auth';
@@ -112,6 +112,10 @@ export default function TherapistLayout({
             <a href="https://www.instagram.com/mindset_theater?igsh=NjB0aTA5Y3pybWZo" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent text-muted-foreground hover:text-accent-foreground text-sm">
               <Instagram className="h-4 w-4" />
               <span>Instagram</span>
+            </a>
+            <a href="https://whatsapp.com/channel/0029Vb7Gu0L0wajqOF6oOf0y" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent text-muted-foreground hover:text-accent-foreground text-sm">
+              <MessageSquare className="h-4 w-4" />
+              <span>WhatsApp</span>
             </a>
         </div>
         <div className="mt-auto space-y-4 p-4 border-t">
