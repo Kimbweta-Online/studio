@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -113,6 +114,9 @@ export default function ClientProfilePage() {
             }
 
             setUserData((prev: any) => ({ ...prev, avatarUrl }));
+            if (setAuthUser) {
+              setAuthUser(prev => prev ? ({ ...prev, photoURL: avatarUrl }) : null);
+            }
             setSelectedFile(null); // Clear selection after upload
 
             toast({
@@ -141,7 +145,6 @@ export default function ClientProfilePage() {
              await updateDoc(userDocRef, {
                 name: name,
                 phone: phone,
-                avatarUrl: userData.avatarUrl || null
             });
 
             if (auth.currentUser && auth.currentUser.displayName !== name) {
@@ -149,6 +152,9 @@ export default function ClientProfilePage() {
             }
             
             setUserData((prev: any) => ({ ...prev, name, phone }));
+            if (setAuthUser) {
+              setAuthUser(prev => prev ? ({...prev, displayName: name}) : null);
+            }
 
             toast({
                 title: "Profile Saved",

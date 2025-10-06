@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -115,6 +116,9 @@ export default function TherapistProfilePage() {
             }
 
             setUserData((prev: any) => ({ ...prev, avatarUrl }));
+             if (setAuthUser) {
+              setAuthUser(prev => prev ? ({ ...prev, photoURL: avatarUrl }) : null);
+            }
             setSelectedFile(null); // Clear selection after upload
 
             toast({
@@ -148,7 +152,6 @@ export default function TherapistProfilePage() {
                 specialty: specialty,
                 bio: bio,
                 isOnline: isAvailable,
-                avatarUrl: userData.avatarUrl || null,
             });
 
              if (auth.currentUser && auth.currentUser.displayName !== name) {
@@ -156,6 +159,9 @@ export default function TherapistProfilePage() {
             }
             
             setUserData((prev: any) => ({ ...prev, name, specialty, bio, isOnline: isAvailable, phone }));
+             if (setAuthUser) {
+              setAuthUser(prev => prev ? ({...prev, displayName: name}) : null);
+            }
 
             toast({
                 title: "Profile Saved",
@@ -356,4 +362,5 @@ export default function TherapistProfilePage() {
     </div>
   );
 }
+
 
