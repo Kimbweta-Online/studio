@@ -129,7 +129,7 @@ export default function ChatPage() {
 
   if (loading || !therapist) {
     return (
-      <div className="flex flex-col h-[calc(100vh-10rem)]">
+      <div className="flex flex-col h-full">
         <header className="p-4 border-b flex items-center gap-4">
           <Skeleton className="h-10 w-10 rounded-full" />
           <Skeleton className="h-6 w-32" />
@@ -144,9 +144,9 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-6rem)]">
-      <header className="p-4 border-b flex items-center gap-4 bg-background sticky top-0 z-10">
-        <Button variant="ghost" size="icon" onClick={() => router.back()}>
+    <div className="flex flex-col h-[calc(100vh-8rem)] md:h-[calc(100vh-6rem)]">
+      <header className="p-4 border-b flex items-center gap-4 bg-background sticky top-16 md:top-0 z-10">
+        <Button variant="ghost" size="icon" onClick={() => router.back()} className="md:hidden">
           <ArrowLeft />
         </Button>
         <Avatar>

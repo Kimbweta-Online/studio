@@ -16,8 +16,8 @@ import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
 
-const NavLink = ({ href, isActive, children }: { href: string, isActive: boolean, children: React.ReactNode }) => (
-    <Link href={href} className={`flex items-center gap-3 p-2 rounded-lg ${isActive ? 'bg-accent text-accent-foreground' : 'hover:bg-accent'}`}>
+const NavLink = ({ href, isActive, children, onClick }: { href: string, isActive: boolean, children: React.ReactNode, onClick?: () => void }) => (
+    <Link href={href} className={`flex items-center gap-3 p-2 rounded-lg ${isActive ? 'bg-accent text-accent-foreground' : 'hover:bg-accent'}`} onClick={onClick}>
         {children}
     </Link>
 );
@@ -66,19 +66,19 @@ export default function ClientLayout({
             </span>
         </div>
         <nav className="flex-1 space-y-2 px-4">
-            <NavLink href="/client/dashboard" isActive={isActive("/client/dashboard")}>
+            <NavLink href="/client/dashboard" isActive={isActive("/client/dashboard")} onClick={() => setIsSheetOpen(false)}>
                 <LayoutGrid /><span>Dashboard</span>
             </NavLink>
-            <NavLink href="/client/chat" isActive={isActive("/client/chat")}>
+            <NavLink href="/client/chat" isActive={isActive("/client/chat")} onClick={() => setIsSheetOpen(false)}>
                 <MessageCircle /><span>Chats</span>
             </NavLink>
-            <NavLink href="/client/ai-chat" isActive={isActive("/client/ai-chat")}>
+            <NavLink href="/client/ai-chat" isActive={isActive("/client/ai-chat")} onClick={() => setIsSheetOpen(false)}>
                 <Bot /><span>Dr. Mindset</span>
             </NavLink>
-            <NavLink href="/client/booking" isActive={isActive("/client/booking")}>
+            <NavLink href="/client/booking" isActive={isActive("/client/booking")} onClick={() => setIsSheetOpen(false)}>
                 <CalendarDays /><span>Booking</span>
             </NavLink>
-            <NavLink href="/client/profile" isActive={isActive("/client/profile")}>
+            <NavLink href="/client/profile" isActive={isActive("/client/profile")} onClick={() => setIsSheetOpen(false)}>
                 <User /><span>Profile</span>
             </NavLink>
         </nav>
@@ -131,7 +131,7 @@ export default function ClientLayout({
       
       <div className="flex-1 flex flex-col">
         <header className="flex items-center justify-between md:justify-end p-4 border-b bg-background sticky top-0 z-10 h-16">
-            <div className="md:hidden">
+            <div className="md:hidden flex items-center gap-2">
               <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
                   <SheetTrigger asChild>
                        <Button variant="ghost" size="icon">
@@ -146,9 +146,16 @@ export default function ClientLayout({
                     {navContent}
                   </SheetContent>
               </Sheet>
+              <Logo />
             </div>
            <div className="flex items-center gap-4">
-              <p className="text-sm text-muted-foreground">Welcome back, {user.displayName || "Client"}!</p>
+              <p className="text-sm text-muted-foreground hidden sm:block">Welcome back, {user.displayName || "Client"}!</p>
+               <Avatar className="h-8 w-8">
+                  <AvatarImage src={user.photoURL || undefined} alt={user.displayName || "Client"} />
+                  <AvatarFallback className="bg-secondary text-xs flex items-center justify-center">
+                    {(user.displayName || "C").charAt(0)}
+                  </AvatarFallback>
+              </Avatar>
            </div>
         </header>
         <main className="p-4 sm:p-6 lg:p-8 flex-1 bg-secondary/50">{children}</main>
