@@ -143,9 +143,9 @@ export default function AdminDashboardPage() {
         setUsers(prevUsers => prevUsers.filter(u => u.id !== userId));
         
         toast({
-          title: "🚨 Manual Deletion Required",
+          title: "🚨 Manual Action Required to Complete Deletion",
           description: `All database records for ${userToDelete.name} have been removed. To allow re-registration with this email, you must now MANUALLY delete the user from the Firebase Authentication console.`,
-          duration: Infinity,
+          duration: Infinity, // Make the toast persistent
         });
 
       } catch (error) {
@@ -418,4 +418,5 @@ export default function AdminDashboardPage() {
   );
 }
 
+    
     
