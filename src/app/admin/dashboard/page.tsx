@@ -143,8 +143,9 @@ export default function AdminDashboardPage() {
         setUsers(prevUsers => prevUsers.filter(u => u.id !== userId));
         
         toast({
-          title: "User Data Deleted",
-          description: `All Firestore data for ${userToDelete.name} has been removed. To allow re-registration, the user must now be manually deleted from the Firebase Authentication console.`,
+          title: "User Data Deleted (Manual Step Required)",
+          description: `All database records for ${userToDelete.name} have been removed. To allow re-registration with the same email, you must now manually delete this user from the Firebase Authentication console.`,
+          duration: 9000,
         });
 
       } catch (error) {
@@ -416,5 +417,3 @@ export default function AdminDashboardPage() {
     </div>
   );
 }
-
-    
