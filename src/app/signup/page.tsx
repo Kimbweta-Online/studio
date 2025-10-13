@@ -53,7 +53,7 @@ export default function SignupPage() {
 
       // Determine role, checking for special admin email
       const role = values.email === 'admin@gmail.com' ? 'admin' : values.role;
-      const avatar = role === 'admin' ? '👑' : (role === 'therapist' ? '🧑‍⚕️' : '😀');
+      const avatar = role === 'admin' ? '👑' : (role === 'therapist' ? '🧑‍⚕️' : values.name.charAt(0).toUpperCase() || '😀');
 
       // Create user document in Firestore
       await setDoc(doc(db, "users", user.uid), {

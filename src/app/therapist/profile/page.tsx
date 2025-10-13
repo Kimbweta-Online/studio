@@ -144,7 +144,8 @@ export default function TherapistProfilePage() {
             const phone = (form.elements.namedItem("phone") as HTMLInputElement).value;
             const specialty = (form.elements.namedItem("specialty") as HTMLInputElement).value;
             const bio = (form.elements.namedItem("bio") as HTMLTextAreaElement).value;
-            
+            const avatar = name.charAt(0).toUpperCase();
+
             const userDocRef = doc(db, "users", user.uid);
              await updateDoc(userDocRef, {
                 name: name,
@@ -152,13 +153,14 @@ export default function TherapistProfilePage() {
                 specialty: specialty,
                 bio: bio,
                 isOnline: isAvailable,
+                avatar: avatar,
             });
 
              if (auth.currentUser && auth.currentUser.displayName !== name) {
                 await updateProfile(auth.currentUser, { displayName: name });
             }
             
-            setUserData((prev: any) => ({ ...prev, name, specialty, bio, isOnline: isAvailable, phone }));
+            setUserData((prev: any) => ({ ...prev, name, specialty, bio, isOnline: isAvailable, phone, avatar }));
              if (setAuthUser) {
               setAuthUser(prev => prev ? ({...prev, displayName: name}) : null);
             }

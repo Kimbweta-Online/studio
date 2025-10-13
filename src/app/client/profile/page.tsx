@@ -140,18 +140,20 @@ export default function ClientProfilePage() {
             const form = e.currentTarget;
             const name = (form.elements.namedItem("name") as HTMLInputElement).value;
             const phone = (form.elements.namedItem("phone") as HTMLInputElement).value;
+            const avatar = name.charAt(0).toUpperCase();
 
             const userDocRef = doc(db, "users", user.uid);
              await updateDoc(userDocRef, {
                 name: name,
                 phone: phone,
+                avatar: avatar,
             });
 
             if (auth.currentUser && auth.currentUser.displayName !== name) {
               await updateProfile(auth.currentUser, { displayName: name });
             }
             
-            setUserData((prev: any) => ({ ...prev, name, phone }));
+            setUserData((prev: any) => ({ ...prev, name, phone, avatar }));
             if (setAuthUser) {
               setAuthUser(prev => prev ? ({...prev, displayName: name}) : null);
             }
