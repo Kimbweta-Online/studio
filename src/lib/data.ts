@@ -51,3 +51,13 @@ export type Quote = {
     authorId: string;
     createdAt: Timestamp;
 }
+
+export type Notification = {
+    id: string;
+    userId: string; // The user who should receive the notification
+    title: string;
+    body: string;
+    link: string;
+    read: boolean;
+    createdAt: Timestamp;
+}

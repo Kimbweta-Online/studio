@@ -15,6 +15,7 @@ import { signOut } from 'firebase/auth';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
+import { NotificationsDropdown } from '@/components/notifications-dropdown';
 
 const NavLink = ({ href, isActive, children }: { href: string, isActive: boolean, children: React.ReactNode }) => (
     <Link href={href} className={`flex items-center gap-3 p-2 rounded-lg ${isActive ? 'bg-accent text-accent-foreground' : 'hover:bg-accent'}`}>
@@ -164,6 +165,7 @@ export default function TherapistLayout({
               </Sheet>
             </div>
            <div className="flex items-center gap-4">
+              <NotificationsDropdown />
               <p className="text-sm text-muted-foreground">Welcome back, {user.displayName || "Therapist"}!</p>
            </div>
         </header>

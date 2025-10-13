@@ -160,6 +160,16 @@ export default function ClientBookingPage() {
         };
         
         await setDoc(newBookingRef, newBooking);
+
+         // Create notification for the therapist
+        await addDoc(collection(db, "notifications"), {
+            userId: therapist.id,
+            title: "New Booking Request",
+            body: `You have a new booking request from ${clientData.name}.`,
+            link: "/therapist/booking",
+            read: false,
+            createdAt: serverTimestamp(),
+        });
         
         const bookingWithId = { ...newBooking, id: newBookingRef.id, date: finalDate };
         setAllBookings(prev => [...prev, bookingWithId]);
