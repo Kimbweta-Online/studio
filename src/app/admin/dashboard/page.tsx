@@ -103,11 +103,11 @@ export default function AdminDashboardPage() {
       }
       try {
         const batch = writeBatch(db);
-
-        // 1. Delete associated data
         const userId = userToDelete.id;
 
-        // Delete bookings
+        // 1. Delete associated data from Firestore
+        
+        // Delete bookings where user is client or therapist
         const clientBookingsQuery = query(collection(db, 'bookings'), where('clientId', '==', userId));
         const therapistBookingsQuery = query(collection(db, 'bookings'), where('therapistId', '==', userId));
         const [clientBookingsSnapshot, therapistBookingsSnapshot] = await Promise.all([getDocs(clientBookingsQuery), getDocs(therapistBookingsQuery)]);
@@ -121,7 +121,7 @@ export default function AdminDashboardPage() {
             aiChatsSnapshot.forEach(doc => batch.delete(doc.ref));
         }
 
-        // Delete user's participation in chats
+        // Delete user's participation in chats and all messages within those chats
         const chatsQuery = query(collection(db, 'chats'), where('participants', 'array-contains', userId));
         const chatsSnapshot = await getDocs(chatsQuery);
         for (const chatDoc of chatsSnapshot.docs) {
@@ -133,18 +133,18 @@ export default function AdminDashboardPage() {
             batch.delete(chatDoc.ref);
         }
 
-        // 2. Delete user document
+        // 2. Delete the user document itself from Firestore
         const userRef = doc(db, "users", userId);
         batch.delete(userRef);
 
-        // Commit the batch
+        // Commit the batch to delete all Firestore data atomically
         await batch.commit();
 
         setUsers(prevUsers => prevUsers.filter(u => u.id !== userId));
         
         toast({
-          title: "User and Data Deleted",
-          description: `User ${userToDelete.name} and all their associated data have been removed.`,
+          title: "User Data Deleted",
+          description: `All Firestore data for ${userToDelete.name} has been removed. To allow re-registration, the user must now be manually deleted from the Firebase Authentication console.`,
         });
 
       } catch (error) {
@@ -152,7 +152,7 @@ export default function AdminDashboardPage() {
         toast({
           variant: "destructive",
           title: "Deletion Failed",
-          description: "Could not delete the user and their data.",
+          description: "Could not delete the user and their data from Firestore.",
         });
       } finally {
         setUserToDelete(null);
