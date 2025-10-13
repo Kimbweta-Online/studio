@@ -93,9 +93,10 @@ export default function LoginPage() {
           router.push("/client/dashboard");
       }
     } catch (error: any) {
-      console.error("Login error:", error);
+      console.error("Login error object:", error);
       let description = "An unexpected error occurred. Please try again.";
       if (error.code) {
+          console.error("Firebase error code:", error.code);
           switch (error.code) {
               case 'auth/user-not-found':
               case 'auth/wrong-password':
