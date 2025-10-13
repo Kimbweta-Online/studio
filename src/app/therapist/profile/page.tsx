@@ -101,7 +101,10 @@ export default function TherapistProfilePage() {
     };
     
     const handlePhotoUpload = async () => {
-        if (!user || !selectedFile) return;
+        if (!user || !selectedFile) {
+            toast({ variant: "destructive", title: "Upload Failed", description: "No file selected or user not logged in." });
+            return;
+        }
         setIsUploadingPhoto(true);
         try {
             const storageRef = ref(storage, `avatars/${user.uid}/${selectedFile.name}`);
@@ -119,7 +122,7 @@ export default function TherapistProfilePage() {
              if (setAuthUser) {
               setAuthUser(prev => prev ? ({ ...prev, photoURL: avatarUrl }) : null);
             }
-            setSelectedFile(null); // Clear selection after upload
+            setSelectedFile(null);
 
             toast({
                 title: "Photo Uploaded",
@@ -364,5 +367,6 @@ export default function TherapistProfilePage() {
     </div>
   );
 }
+
 
 
