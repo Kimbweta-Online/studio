@@ -137,11 +137,9 @@ export default function ClientBookingPage() {
 
     try {
         const newBookingRef = doc(collection(db, "bookings"));
-        const clientDoc = await getDoc(doc(db, "users", user.uid));
-        const clientData = clientDoc.data();
-
-        if (!clientData) {
-            throw new Error("Client user document not found!");
+        
+        if (!user.displayName) {
+            throw new Error("Client user name not found!");
         }
 
         const [hours, minutes] = selectedTime.split(':').map(Number);
@@ -153,7 +151,7 @@ export default function ClientBookingPage() {
         const newBooking: Omit<Booking, 'id'> = {
             therapistId: therapist.id,
             clientId: user.uid,
-            clientName: clientData.name || "Unknown Client",
+            clientName: user.displayName,
             date: finalDate,
             status: 'Pending',
             duration: durationInfo ? parseInt(durationInfo.value) : 0,
@@ -165,7 +163,7 @@ export default function ClientBookingPage() {
         await addDoc(collection(db, "notifications"), {
             userId: therapist.id,
             title: "New Booking Request",
-            body: `You have a new booking request from ${clientData.name}.`,
+            body: `You have a new booking request from ${user.displayName}.`,
             link: "/therapist/booking",
             read: false,
             createdAt: serverTimestamp(),
@@ -179,9 +177,9 @@ export default function ClientBookingPage() {
             title: "Booking Request Sent",
             description: "Your session request has been sent and is now pending confirmation.",
         });
-    } catch(error) {
+    } catch(error: any) {
          console.error("Error creating booking: ", error);
-         toast({ variant: "destructive", title: "Booking Failed", description: "There was an error scheduling your session." });
+         toast({ variant: "destructive", title: "Booking Failed", description: error.message || "There was an error scheduling your session." });
     } finally {
         setIsScheduling(false);
         setSelectedTime(undefined);
