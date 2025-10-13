@@ -19,7 +19,7 @@ export default function TermsAndConditionsPage() {
           To help us make Mindset Theater a safe and secure space for you and everyone else, we kindly ask you to adhere to the following:
         </p>
         <ul>
-            <li><strong>Accurate Information:</strong> When you create an account with us, you must provide information that is accurate, complete, and current at all times. Failure to do so constitutes a breach of the Terms, which may result in immediate termination of your account on our Service.</li>
+            <li><strong>Accurate Information:</strong> When you create an account with us, you should provide information that is accurate, complete, and current at all times.</li>
             <li><strong>Keep Your Account Private:</strong> You are responsible for safeguarding the password that you use to access the Service. Do not share your account or login details with anyone.</li>
             <li><strong>Notify Us:</strong> You must notify us immediately upon becoming aware of any breach of security or unauthorized use of your account.</li>
             <li><strong>Speak Up:</strong> If anything ever feels unsafe or violates our policies, please report it to us immediately.</li>
@@ -39,9 +39,6 @@ export default function TermsAndConditionsPage() {
         <h2>3. Disclaimer and Limitation of Liability</h2>
         <p>
           Mindset Theater is a platform that connects clients with mental health professionals and provides AI-driven supportive tools. It is not a substitute for professional medical advice, diagnosis, or treatment. The AI assistant is for informational and supportive purposes only and does not provide medical advice.
-        </p>
-        <p>
-          Always seek the advice of your physician or another qualified health provider with any questions you may have regarding a medical condition. Never disregard professional medical advice or delay in seeking it because of something you have read on this application. We are not responsible for the advice or quality of care provided by therapists on this platform; we act solely as a facilitator.
         </p>
 
         <h2>4. Termination</h2>
